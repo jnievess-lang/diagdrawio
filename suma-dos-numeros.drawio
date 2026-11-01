@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net">
   <diagram id="suma" name="Suma de dos números">
-    <mxGraphModel dx="1329" dy="702" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0" adaptiveColors="auto">
+    <mxGraphModel dx="837" dy="442" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0" adaptiveColors="auto">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -17,10 +17,10 @@
           <mxGeometry height="60" width="160" x="320" y="340" as="geometry" />
         </mxCell>
         <mxCell id="mostrar" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Mostrar Suma" vertex="1">
-          <mxGeometry height="60" width="160" x="320" y="440" as="geometry" />
+          <mxGeometry height="60" width="160" x="320" y="455" as="geometry" />
         </mxCell>
         <mxCell id="fin" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Fin" vertex="1">
-          <mxGeometry height="60" width="120" x="340" y="540" as="geometry" />
+          <mxGeometry height="60" width="120" x="340" y="570" as="geometry" />
         </mxCell>
         <mxCell id="e1" edge="1" parent="1" source="inicio" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" target="leerA">
           <mxGeometry relative="1" as="geometry" />
