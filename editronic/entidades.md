@@ -17,6 +17,10 @@ Ficha de cada entidad del modelo. Una entidad sin ficha completa no entra al dia
 | 8 | Ingresar producto y productos registrados | Inventario: productos | `productos`, `categorias_producto`, `marcas`, `precios_producto` |
 | 9 | Inventario actual | Inventario: inventario | `productos`, `movimientos_inventario` |
 | 10 | Inventario de equipos / máquinas | Inventario de equipos | `ordenes_reparacion`, `equipos`, `estados_orden` (no aporta tabla nueva) |
+| 11 | Nueva proforma y proformas guardadas | Proformas | `proformas`, `detalle_proforma` |
+| 12 | Cuentas por cobrar | Cuentas por cobrar | `facturas`, `movimientos_caja` (confirma D-009; no aporta tabla nueva) |
+| 13 | Empleados del sistema, cuenta del administrador y usuarios registrados | Empleados | `usuarios`, `roles` |
+| 14 | Datos de la empresa y personalización | Configuración | `configuracion` |
 
 ## Resumen
 
@@ -30,7 +34,7 @@ Ficha de cada entidad del modelo. Una entidad sin ficha completa no entra al dia
 | `sesiones_caja` | Observada | Propuesta | No | No |
 | `movimientos_caja` | Observada | Propuesta | No | No |
 | `metodos_pago` | Observada (lista desplegable) | Propuesta | No | No |
-| `usuarios` | Observada (usuario y rol en la cabecera) | Propuesta, incompleta | No | No |
+| `usuarios` | Observada (pantalla Empleados) | Propuesta | No | No |
 | `facturas` | Observada | Propuesta | No | No |
 | `detalle_factura` | Observada (detalle de venta) | Propuesta | No | No |
 | `productos` | Observada | Propuesta | No | No |
@@ -40,10 +44,16 @@ Ficha de cada entidad del modelo. Una entidad sin ficha completa no entra al dia
 | `precios_producto` | Derivada de normalizar las tres columnas de precio | Propuesta, por validar | No | No |
 | `movimientos_inventario` | Nueva: no existe en el sistema viejo | Propuesta, por validar | No | No |
 | `envios_correo` | Observada ("PDF enviado · correo · fecha") | Propuesta | No | No |
+| `roles` | Observada (Administrador, Técnico, Secretario/a) | Propuesta | No | No |
+| `proformas` | Observada | Propuesta | No | No |
+| `detalle_proforma` | Observada (detalle de proforma) | Propuesta | No | No |
+| `configuracion` | Observada (datos de la empresa) | Propuesta | No | No |
 
 **Tablas que no hacen falta** (aunque haya módulo o pantalla):
 - **Inventario de equipos:** es una consulta sobre `ordenes_reparacion` + `equipos` + `clientes`; sus totales (pendientes, reparados, entregados) se cuentan por estado.
-- **Cuentas por cobrar:** son las facturas con saldo mayor que 0; los abonos son movimientos de caja enlazados a la factura (D-009). Pendiente de confirmar con la captura del módulo.
+- **Cuentas por cobrar:** son las facturas con saldo mayor que 0; los abonos son movimientos de caja enlazados a la factura (D-009). La captura 12 lo confirma: la pantalla lista facturas (total, abonado, saldo) y sus indicadores (total pendiente, facturas pendientes, clientes con saldo, abonos de hoy) se calculan.
+- **Empleados:** son los registros de `usuarios` (D-014).
+- **Perfil:** probablemente edita el propio registro de `usuarios` (pendiente de captura).
 
 **Origen:** *Observada* = aparece en pantalla con sus campos. *Referenciada* = se menciona, pero faltan sus campos.
 
@@ -61,6 +71,11 @@ Ficha de cada entidad del modelo. Una entidad sin ficha completa no entra al dia
 11. **Facturas que se eliminan.** El historial tiene botón "Eliminar". Una factura emitida no se borra: se anula y queda registrada, sobre todo si tiene validez ante el SRI.
 12. **Precio de compra en $0,00.** Todos los productos vistos tienen precio de compra 0, así que "Valor de compra" del inventario es $0. El campo existe pero no se llena; sin él no se puede calcular la ganancia.
 13. **Stock editado a mano.** El stock se escribe en el formulario del producto, sin registro de por qué cambió. Propuesta: `movimientos_inventario` (D-010).
+14. **Administrador separado.** Empleados tiene un bloque "Cuenta del administrador" distinto de "Usuarios registrados", y el administrador no aparece en la lista. Propuesta: un solo `usuarios` con rol Administrador (D-014).
+15. **RUC vacío y razón social incorrecta.** En Configuración el RUC está vacío y la razón social es "Soporte técnico", que es una actividad, no un nombre legal.
+16. **Botón "Restablecer datos de prueba".** Si existe en producción puede borrar datos reales. No afecta al modelo, pero conviene eliminarlo del sistema nuevo.
+17. **Credenciales de correo.** El envío por Gmail API necesita credenciales; deben vivir en la configuración del servidor, nunca en la base de datos ni en el código.
+18. **Vigencia de proformas no visible.** El formulario pide la vigencia, pero la lista muestra "–".
 
 ---
 
@@ -291,26 +306,55 @@ Ficha de cada entidad del modelo. Una entidad sin ficha completa no entra al dia
 ---
 
 ## usuarios
-- **Estado:** Propuesta, incompleta
-- **Origen:** captura 1 (cabecera: "edison", "Administrador").
-- **Propósito:** personas que inician sesión en el sistema.
-- **Justificación:** caja, órdenes y facturas registran quién hizo cada operación.
-- **Alternativas descartadas:** ninguna todavía.
+- **Estado:** Propuesta
+- **Origen:** capturas 1 y 13 (cabecera "edison · Administrador"; pantalla Empleados: "Empleados del sistema", "Cuenta del administrador" y "Usuarios registrados").
+- **Propósito:** empleados del local que inician sesión en el sistema.
+- **Justificación:** caja, órdenes, facturas e inventario registran quién hizo cada operación.
+- **Alternativas descartadas:**
+  - Tablas separadas `empleados` y `usuarios`: en el sistema viejo todo empleado se crea con usuario y contraseña, así que serían la misma lista (D-014).
+  - Guardar al administrador aparte, como sugiere el bloque "Cuenta del administrador" (hallazgo 14): el administrador es un usuario más con rol Administrador.
 - **Valoración crítica:**
-  - Falta la captura de Empleados. Hay que decidir si `usuarios` y `empleados` son la misma tabla o si un empleado puede no tener acceso al sistema (por ejemplo, un técnico que no usa la aplicación).
-  - El rol ("Administrador") probablemente necesita una tabla `roles`; se decide con la captura de Empleados o Configuración.
-  - La contraseña nunca se guarda en claro: solo su hash.
+  - "Desactivar" en lugar de eliminar ya existe en el sistema viejo: se mantiene como `activo`.
+  - La contraseña nunca se guarda en claro, solo su hash. La regla "mínimo 8 caracteres" se valida en la aplicación.
+  - El correo es opcional para empleados, pero el administrador tiene "correo principal". Se deja opcional y único cuando exista.
+  - Si en el futuro hay técnicos sin acceso al sistema, se revisa D-014.
 
 | Columna | Tipo | Clave | Nulo | Descripción |
 |---|---|---|---|---|
 | id | BIGINT IDENTITY | PK | No | Identificador |
-| nombre_usuario | VARCHAR(50) | UQ | No | Usuario de acceso (p. ej. `edison`) |
+| nombre_completo | VARCHAR(150) | | No | Nombre del empleado |
+| nombre_usuario | VARCHAR(50) | UQ | No | Usuario de acceso (p. ej. `edison`, `jimmy.programado`) |
+| correo | VARCHAR(150) | UQ | Sí | Correo del empleado |
 | hash_contrasena | VARCHAR(255) | | No | Contraseña cifrada |
-| rol | (pendiente) | | No | Administrador, … |
+| rol_id | BIGINT | FK | No | Administrador, Técnico, Secretario/a |
 | activo | BOOLEAN | | No | Si puede iniciar sesión |
+| fecha_creacion | TIMESTAMPTZ | | No | Fecha de alta |
+
+**Relaciones:**
+- `roles` 1 → N `usuarios` mediante `rol_id`.
+- `usuarios` 1 → N en caja, órdenes, facturas, proformas, inventario y envíos de correo (quién registró cada operación).
 
 **Historial:**
 - 2026-11-02: propuesta incompleta.
+- 2026-11-02: completada con la pantalla Empleados; se unifica con empleados (D-014).
+
+---
+
+## roles
+- **Estado:** Propuesta
+- **Origen:** captura 13 (Administrador, Técnico, Secretario/a).
+- **Propósito:** catálogo de roles de los usuarios.
+- **Justificación:** el rol decide qué puede hacer cada usuario; se elige de una lista.
+- **Alternativas descartadas:** `ENUM` o texto (D-007).
+- **Valoración crítica:** no se ve en ninguna pantalla qué puede hacer cada rol. Si los permisos se configuran desde el sistema, hará falta una tabla `permisos` y su relación con `roles`; si están fijos en el código, basta este catálogo. Por confirmar.
+
+| Columna | Tipo | Clave | Nulo | Descripción |
+|---|---|---|---|---|
+| id | BIGINT IDENTITY | PK | No | Identificador |
+| nombre | VARCHAR(40) | UQ | No | Administrador, Técnico, Secretario/a |
+
+**Historial:**
+- 2026-11-02: propuesta.
 
 ---
 
@@ -335,6 +379,7 @@ Ficha de cada entidad del modelo. Una entidad sin ficha completa no entra al dia
 | numero | VARCHAR(20) | UQ | No | Número visible, p. ej. `FAC-000016` |
 | cliente_id | BIGINT | FK | No | Cliente facturado |
 | orden_reparacion_id | BIGINT | FK | Sí | Orden cobrada; nula en ventas |
+| proforma_id | BIGINT | FK, UQ | Sí | Proforma convertida en esta venta |
 | fecha_emision | TIMESTAMPTZ | | No | Fecha y hora |
 | subtotal_sin_iva | NUMERIC(12,2) | | No | Guardado al emitir (por validar) |
 | total_iva | NUMERIC(12,2) | | No | Guardado al emitir (por validar) |
@@ -347,6 +392,7 @@ Ficha de cada entidad del modelo. Una entidad sin ficha completa no entra al dia
 **Relaciones:**
 - `clientes` 1 → N `facturas` mediante `cliente_id`.
 - `ordenes_reparacion` 1 → 0..1 `facturas` mediante `orden_reparacion_id` (por confirmar si una orden puede tener más de una factura).
+- `proformas` 1 → 0..1 `facturas` mediante `proforma_id`.
 - `facturas` 1 → N `detalle_factura`.
 - `facturas` 1 → N `movimientos_caja` (abonos).
 - `facturas` 1 → N `envios_correo`.
@@ -570,11 +616,107 @@ Ficha de cada entidad del modelo. Una entidad sin ficha completa no entra al dia
 
 ---
 
+## proformas
+- **Estado:** Propuesta
+- **Origen:** captura 11 (nueva proforma y proformas guardadas).
+- **Propósito:** cotización sin valor fiscal que se entrega al cliente y puede convertirse en venta.
+- **Justificación:** el local cotiza antes de vender ("Convertir en venta"). Guardarla permite reimprimirla, saber qué se cotizó y enlazarla con la venta resultante.
+- **Alternativas descartadas:** una tabla única `documentos` con un tipo (proforma o factura). Comparten estructura, pero tienen ciclos de vida distintos: la factura es fiscal, tiene abonos, anulación y numeración propia; la proforma vence y no tiene pagos. Mezclarlas llenaría la tabla de columnas que solo aplican a un tipo (D-013).
+- **Valoración crítica:**
+  - **Estado sin columna:** "Vigente" se calcula. Vencida si `fecha_emision + vigencia_dias` ya pasó; Convertida si hay una factura con su `proforma_id`.
+  - La lista muestra "Vigencia: –" aunque el formulario pide días. Parece que el sistema viejo no guarda la vigencia o no la muestra; aquí sí se guarda.
+  - **Sin tarifa:** a diferencia de Ventas, el formulario no permite elegir tarifa. Confirmar si siempre cotiza a precio Público. Por coherencia con `detalle_factura`, el detalle guarda el precio aplicado.
+  - **Borrado:** una proforma no es fiscal, así que puede borrarse, pero no si ya se convirtió en venta (la factura la referencia).
+  - Las proformas ¿también sirven para cotizar reparaciones? En las capturas solo se ven productos.
+
+| Columna | Tipo | Clave | Nulo | Descripción |
+|---|---|---|---|---|
+| id | BIGINT IDENTITY | PK | No | Identificador |
+| numero | VARCHAR(20) | UQ | No | Número visible, p. ej. `PRO-000002` |
+| cliente_id | BIGINT | FK | No | Cliente al que se cotiza |
+| fecha_emision | TIMESTAMPTZ | | No | Fecha y hora |
+| vigencia_dias | SMALLINT | | No | Días de validez (por defecto 7) |
+| observaciones | TEXT | | Sí | Condiciones, tiempo de entrega, alcance |
+| usuario_id | BIGINT | FK | No | Quién la creó |
+
+**Relaciones:**
+- `clientes` 1 → N `proformas`.
+- `proformas` 1 → N `detalle_proforma`.
+- `proformas` 1 → 0..1 `facturas` mediante `facturas.proforma_id`.
+- `usuarios` 1 → N `proformas`.
+
+**Historial:**
+- 2026-11-02: propuesta.
+
+---
+
+## detalle_proforma
+- **Estado:** Propuesta
+- **Origen:** captura 11 (producto, cantidad y "Detalle de proforma").
+- **Propósito:** cada línea de una proforma.
+- **Justificación:** misma razón que `detalle_factura`: una proforma tiene varios productos.
+- **Alternativas descartadas:** reutilizar `detalle_factura` con una FK opcional a proforma (mezcla líneas fiscales y no fiscales; ver D-013).
+- **Valoración crítica:** el precio se copia al cotizar. Al convertir en venta hay que decidir si se respeta el precio cotizado o se usa el actual; propongo respetar el cotizado mientras la proforma esté vigente.
+
+| Columna | Tipo | Clave | Nulo | Descripción |
+|---|---|---|---|---|
+| id | BIGINT IDENTITY | PK | No | Identificador |
+| proforma_id | BIGINT | FK | No | Proforma a la que pertenece |
+| producto_id | BIGINT | FK | No | Producto cotizado |
+| cantidad | NUMERIC(10,2) | | No | Cantidad, mayor que 0 |
+| precio_unitario | NUMERIC(12,2) | | No | Precio con IVA al cotizar |
+| porcentaje_iva | NUMERIC(5,2) | | No | IVA aplicado |
+
+**Relaciones:**
+- `proformas` 1 → N `detalle_proforma`.
+- `productos` 1 → N `detalle_proforma`.
+
+**Historial:**
+- 2026-11-02: propuesta.
+
+---
+
+## configuracion
+- **Estado:** Propuesta
+- **Origen:** captura 14 (datos de la empresa y personalización).
+- **Propósito:** datos del negocio y parámetros generales: RUC, nombre, dirección, IVA, logo, cláusulas y colores.
+- **Justificación:** facturas, órdenes y proformas imprimen estos datos, y el IVA por defecto se toma de aquí.
+- **Alternativas descartadas:**
+  - Tabla clave-valor (`clave`, `valor`): flexible, pero todo es texto, sin tipos ni validación (el IVA podría guardarse como "quince").
+  - Valores fijos en el código: obligaría a cambiar el programa para actualizar un teléfono.
+- **Valoración crítica:**
+  - Tabla de **una sola fila** (D-012), garantizada con `CHECK (id = 1)`.
+  - **RUC vacío y razón social "Soporte técnico"** (hallazgo 15): sin RUC no se pueden emitir facturas electrónicas del SRI. Esto refuerza la sospecha de que las facturas actuales son comprobantes internos.
+  - **Logo:** se guarda la ruta o URL del archivo, no la imagen en la base de datos.
+  - **Cláusulas:** si cambian, las órdenes ya impresas tenían las anteriores. Si hay que demostrar qué cláusulas aceptó un cliente, habría que copiarlas en cada orden. Por decidir.
+  - **Credenciales de Gmail:** "Correo listo… mediante Gmail API" implica credenciales. No van en esta tabla sino en la configuración del servidor (hallazgo 17).
+  - Los colores de personalización son preferencias de la interfaz; se guardan aquí por simplicidad.
+
+| Columna | Tipo | Clave | Nulo | Descripción |
+|---|---|---|---|---|
+| id | SMALLINT | PK | No | Siempre 1 |
+| ruc | VARCHAR(13) | | Sí | RUC del negocio |
+| nombre_comercial | VARCHAR(150) | | No | EDITRONIC |
+| razon_social | VARCHAR(200) | | Sí | Razón social legal |
+| telefono | VARCHAR(20) | | Sí | Teléfono |
+| direccion | VARCHAR(250) | | Sí | Dirección del local |
+| correo | VARCHAR(150) | | Sí | Correo de la empresa (remitente de facturas) |
+| porcentaje_iva | NUMERIC(5,2) | | No | IVA por defecto (15.00) |
+| logo_url | VARCHAR(300) | | Sí | Ruta del logo |
+| clausulas_servicio | TEXT | | Sí | Condiciones impresas en las órdenes |
+| color_principal | VARCHAR(7) | | Sí | Color en hexadecimal |
+| color_secundario | VARCHAR(7) | | Sí | Color en hexadecimal |
+
+**Relaciones:** ninguna (tabla de parámetros).
+
+**Historial:**
+- 2026-11-02: propuesta.
+
+---
+
 ## Pendiente de capturas
 | Módulo | Para qué |
 |---|---|
-| Proformas | Cabecera y detalle de cotización |
-| Cuentas por cobrar | Confirmar que basta con facturas y abonos (D-009) |
-| Empleados, Perfil y Configuración | Usuarios, roles, datos del negocio, IVA |
 | Órdenes (detalle, edición o factura de reparación) | Estados, técnico, diagnóstico, costos, entrega, repuestos |
 | Dashboard | Comprobar que todo lo que muestra se calcula con las tablas propuestas |
+| Perfil | Confirmar si es lo mismo que "Cuenta del administrador" |

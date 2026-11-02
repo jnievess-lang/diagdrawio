@@ -103,3 +103,27 @@ Cada decisión de diseño con su contexto, alternativas y consecuencias. Las dec
 - **Decisión:** catálogo `tarifas` y tabla `precios_producto` (producto, tarifa, precio).
 - **Alternativas descartadas:** tres columnas en `productos`, válidas solo si las tarifas no cambiarán nunca.
 - **Consecuencias:** una tarifa nueva no cambia la estructura. Consultar el precio requiere unir dos tablas.
+
+### D-012 — Configuración en una tabla de una sola fila
+- **Fecha:** 2026-11-02
+- **Estado:** Propuesta (validar con el usuario)
+- **Contexto:** Configuración guarda los datos de la empresa (RUC, nombre, dirección, IVA, logo, cláusulas, colores).
+- **Decisión:** tabla `configuracion` con columnas tipadas y una sola fila (`CHECK (id = 1)`).
+- **Alternativas descartadas:** tabla clave-valor (todo texto, sin validación); valores en el código (hay que reprogramar para cambiar un dato).
+- **Consecuencias:** añadir un parámetro nuevo es añadir una columna. Las credenciales (Gmail API) no se guardan aquí sino en el servidor.
+
+### D-013 — Proformas separadas de facturas
+- **Fecha:** 2026-11-02
+- **Estado:** Propuesta (validar con el usuario)
+- **Contexto:** proformas y facturas tienen cabecera y detalle casi iguales.
+- **Decisión:** tablas propias `proformas` y `detalle_proforma`; al convertir en venta, la factura guarda `proforma_id`.
+- **Alternativas descartadas:** una tabla `documentos` con tipo. Ahorra tablas, pero mezcla un documento fiscal (con abonos, anulación y numeración controlada) con uno que solo vence; muchas columnas quedarían vacías según el tipo.
+- **Consecuencias:** dos tablas más con estructura parecida; a cambio, cada una tiene solo las reglas que le corresponden.
+
+### D-014 — Usuarios y empleados son la misma tabla
+- **Fecha:** 2026-11-02
+- **Estado:** Propuesta (validar con el usuario)
+- **Contexto:** en la pantalla Empleados cada empleado se crea con usuario, rol y contraseña; el administrador aparece en un bloque aparte.
+- **Decisión:** una sola tabla `usuarios` (con `nombre_completo`) y un catálogo `roles`. El administrador es un usuario con rol Administrador.
+- **Alternativas descartadas:** `empleados` y `usuarios` por separado (hoy no hay empleados sin acceso); administrador guardado aparte (dos formas de iniciar sesión y dos lugares para la contraseña).
+- **Consecuencias:** si en el futuro hay empleados sin acceso al sistema (p. ej. técnicos que no usan la aplicación), se separa en dos tablas.

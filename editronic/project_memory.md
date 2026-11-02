@@ -6,13 +6,20 @@ Bitácora cronológica: cada cambio, en orden, con su motivo. La entrada más re
 - **Fase:** levantamiento de entidades del sistema viejo a partir de capturas. **No se modifican los diagramas** hasta que el usuario tenga el panorama completo y valide `entidades.md`.
 - **Diagrama Dev:** vacío.
 - **Diagrama Producción:** vacío.
-- **Entidades propuestas (18):** `clientes`, `equipos`, `tipos_equipo`, `ordenes_reparacion`, `estados_orden`, `sesiones_caja`, `movimientos_caja`, `metodos_pago`, `usuarios` (incompleta), `facturas`, `detalle_factura`, `productos`, `categorias_producto`, `marcas`, `tarifas`, `precios_producto`, `movimientos_inventario`, `envios_correo`.
+- **Entidades propuestas (22):** `clientes`, `equipos`, `tipos_equipo`, `ordenes_reparacion`, `estados_orden`, `sesiones_caja`, `movimientos_caja`, `metodos_pago`, `usuarios`, `roles`, `facturas`, `detalle_factura`, `proformas`, `detalle_proforma`, `productos`, `categorias_producto`, `marcas`, `tarifas`, `precios_producto`, `movimientos_inventario`, `envios_correo`, `configuracion`.
 - **Pendiente:**
-  - Recibir más capturas: proformas, cuentas por cobrar, empleados, perfil, configuración, detalle de orden y dashboard (lista en `entidades.md`).
-  - Validar D-002, D-003 y D-006 a D-011.
+  - Recibir las últimas capturas: detalle o edición de una orden, Dashboard y Perfil.
+  - Validar D-002, D-003 y D-006 a D-014.
   - Resolver las dudas abiertas de `proyecto.md`.
 
 ## Bitácora
+
+### 2026-11-02 — Proformas, cuentas por cobrar, empleados y configuración
+- **Qué:** con 4 capturas más se añadieron `roles`, `proformas`, `detalle_proforma` y `configuracion`; se completó `usuarios` y se añadió `proforma_id` a `facturas`.
+- **Resuelto:** cuentas por cobrar no necesita tabla (la pantalla confirma D-009); empleados y usuarios son la misma tabla; roles: Administrador, Técnico, Secretario/a; local en Quevedo, Ecuador.
+- **Hallazgos:** 5 nuevos (14 a 18), entre ellos el administrador guardado aparte, el RUC vacío y el botón "Restablecer datos de prueba".
+- **Decisiones:** D-012 (configuración de una fila), D-013 (proformas separadas de facturas), D-014 (usuarios = empleados).
+- **Diagramas:** sin cambios.
 
 ### 2026-11-02 — Entidades de ventas, facturas e inventario
 - **Qué:** con 5 capturas más (Ventas, Facturas, Productos, Inventario, Inventario de equipos) se añadieron 8 entidades: `facturas` (completa), `detalle_factura`, `productos`, `categorias_producto`, `marcas`, `tarifas`, `precios_producto`, `movimientos_inventario` y `envios_correo`. `equipos` pasa a usar el catálogo `marcas`; `estados_orden` recibe la columna `es_final`.

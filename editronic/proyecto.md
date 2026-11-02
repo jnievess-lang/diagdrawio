@@ -31,22 +31,28 @@ Además gestiona inventario y facturación.
 | Otros | Envío de facturas por correo, entre otros |
 
 ## Usuarios y roles
-- Pendiente de definir.
+- Roles vistos: **Administrador**, **Técnico**, **Secretario/a**.
+- Cada empleado es un usuario del sistema (D-014).
+- Pendiente: qué puede hacer cada rol.
 
 ## Requisitos técnicos
 - **Motor de base de datos:** PostgreSQL (ver D-005).
 - **Volumen esperado de datos:** pendiente.
 
-- **País:** Ecuador (deducido del IVA del 15 %, la cédula/RUC y las direcciones). Por confirmar.
-- **IVA:** 15 %, precios con IVA incluido.
+- **País:** Ecuador; el local está en el centro de Quevedo (dirección en Configuración).
+- **IVA:** 15 %, configurable en Configuración; precios con IVA incluido.
+- **Correo:** facturas y órdenes se envían en PDF mediante Gmail API desde el correo de la empresa.
 
 ## Dudas abiertas
 1. ~~**Inventario de equipos**~~: resuelta; son los equipos de clientes en reparación (vista de órdenes).
-2. **Facturación electrónica:** ¿las facturas `FAC-000016` están autorizadas por el SRI o son comprobantes internos?
-3. **Roles:** ¿qué perfiles de usuario hay (administrador, técnico, cajero…)?
+2. **Facturación electrónica:** ¿las facturas `FAC-000016` están autorizadas por el SRI o son comprobantes internos? El RUC vacío en Configuración sugiere que son internas.
+3. ~~**Roles**~~: resuelta; Administrador, Técnico y Secretario/a. Falta saber los permisos de cada uno.
 4. **Compras y proveedores:** ¿se registra la compra de mercadería o el stock entra solo por ajuste?
 5. **Repuestos en reparaciones:** ¿se descuentan del inventario y se facturan en la misma factura de reparación?
 6. **Tarifa por cliente:** ¿cada cliente tiene una tarifa fija o se elige en cada venta?
+7. **Técnico asignado:** con el rol Técnico, ¿cada orden de reparación tiene un técnico responsable?
+8. **Proformas:** ¿siempre se cotiza a precio Público? ¿También se cotizan reparaciones?
+9. **Cláusulas:** ¿hay que conservar en cada orden las cláusulas vigentes cuando se imprimió?
 
 ## Glosario
 | Término | Significado |
