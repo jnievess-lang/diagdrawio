@@ -46,3 +46,11 @@ Cada decisión de diseño con su contexto, alternativas y consecuencias. Las dec
 - **Contexto:** evitar diagramas sin sustento.
 - **Decisión:** ninguna entidad se añade sin su ficha completa en `entidades.md` (propósito, justificación, alternativas y valoración crítica).
 - **Consecuencias:** cada entidad tarda algo más en añadirse, pero el modelo queda defendible.
+
+### D-005 — PostgreSQL como motor de base de datos
+- **Fecha:** 2026-11-02
+- **Estado:** Aceptada
+- **Contexto:** el usuario confirmó que se usará PostgreSQL.
+- **Decisión:** los tipos del diagrama son tipos de PostgreSQL: `BIGINT GENERATED ALWAYS AS IDENTITY` para PK, `NUMERIC(12,2)` para importes, `TIMESTAMPTZ` para fechas con hora, `DATE` para fechas, `VARCHAR(n)` o `TEXT` para texto y `BOOLEAN` para indicadores.
+- **Alternativas descartadas:** `SERIAL` (obsoleto frente a `IDENTITY`); `TIMESTAMP` sin zona horaria (ambiguo si cambia el servidor); `MONEY` (depende de la configuración regional).
+- **Consecuencias:** D-003 se aplica como `NUMERIC(12,2)`, el equivalente de `DECIMAL(12,2)` en PostgreSQL. Los nombres en `snake_case` (D-002) encajan con PostgreSQL, que pasa a minúsculas los nombres sin comillas.

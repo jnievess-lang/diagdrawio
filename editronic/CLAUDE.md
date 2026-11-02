@@ -33,6 +33,8 @@ Estas reglas son obligatorias para cualquier cambio dentro de `editronic/`.
 ## Nombres y tipos de datos
 - Tablas y columnas en `snake_case`, en español y sin tildes ni ñ (ejemplo: `movimiento_inventarios`, `fecha_creacion`).
 - Clave primaria: `id`. Clave foránea: `<tabla_en_singular>_id` (ejemplo: `producto_id`).
-- Dinero: `DECIMAL(12,2)`. Prohibido `FLOAT` o `REAL` para importes.
-- Fechas: `DATE` o `TIMESTAMP`, nunca texto.
+- Motor: PostgreSQL (D-005). Usar sus tipos en el diagrama.
+- PK: `BIGINT GENERATED ALWAYS AS IDENTITY`. No usar `SERIAL`.
+- Dinero: `NUMERIC(12,2)`. Prohibido `FLOAT`, `REAL` o `MONEY` para importes.
+- Fechas: `DATE` o `TIMESTAMPTZ`, nunca texto ni `TIMESTAMP` sin zona horaria.
 - Estados o categorías fijas: tabla catálogo o `ENUM` según `decisiones.md`; nunca texto libre.
