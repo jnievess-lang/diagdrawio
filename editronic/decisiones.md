@@ -54,3 +54,27 @@ Cada decisión de diseño con su contexto, alternativas y consecuencias. Las dec
 - **Decisión:** los tipos del diagrama son tipos de PostgreSQL: `BIGINT GENERATED ALWAYS AS IDENTITY` para PK, `NUMERIC(12,2)` para importes, `TIMESTAMPTZ` para fechas con hora, `DATE` para fechas, `VARCHAR(n)` o `TEXT` para texto y `BOOLEAN` para indicadores.
 - **Alternativas descartadas:** `SERIAL` (obsoleto frente a `IDENTITY`); `TIMESTAMP` sin zona horaria (ambiguo si cambia el servidor); `MONEY` (depende de la configuración regional).
 - **Consecuencias:** D-003 se aplica como `NUMERIC(12,2)`, el equivalente de `DECIMAL(12,2)` en PostgreSQL. Los nombres en `snake_case` (D-002) encajan con PostgreSQL, que pasa a minúsculas los nombres sin comillas.
+
+### D-006 — Separar `equipos` de `ordenes_reparacion`
+- **Fecha:** 2026-11-02
+- **Estado:** Propuesta (validar con el usuario)
+- **Contexto:** en el sistema viejo, "Registrar equipo" crea el equipo y la orden a la vez, y desde la orden se "elimina el equipo".
+- **Decisión:** `equipos` guarda el aparato (tipo, marca, modelo, serie) y `ordenes_reparacion` cada ingreso al taller (daño, observaciones, estado, fecha).
+- **Alternativas descartadas:** una sola tabla, como el sistema viejo (marca, modelo y serie se repiten en cada visita y no hay historial por equipo).
+- **Consecuencias:** al registrar una orden se busca primero si el equipo ya existe. Un equipo con órdenes no se borra.
+
+### D-007 — Listas de valores como tablas catálogo
+- **Fecha:** 2026-11-02
+- **Estado:** Propuesta (validar con el usuario)
+- **Contexto:** tipos de equipo, estados de orden y métodos de pago son listas desplegables que pueden crecer.
+- **Decisión:** usar tablas catálogo (`tipos_equipo`, `estados_orden`, `metodos_pago`). Para valores que nunca cambiarán (como `ingreso`/`egreso`) basta una restricción `CHECK`.
+- **Alternativas descartadas:** `ENUM` de PostgreSQL (añadir o renombrar valores exige cambiar el esquema); texto libre (variantes y errores de escritura).
+- **Consecuencias:** más tablas pequeñas, pero los valores se gestionan desde Configuración sin tocar la base de datos.
+
+### D-008 — No almacenar totales calculados
+- **Fecha:** 2026-11-02
+- **Estado:** Propuesta (validar con el usuario)
+- **Contexto:** la pantalla de caja muestra saldo total, totales por método, egresos y saldo acumulado por fila.
+- **Decisión:** estos valores se calculan con consultas o vistas a partir de `movimientos_caja` y `sesiones_caja`; no son columnas.
+- **Alternativas descartadas:** guardar los totales (se desincronizan si se corrige o anula un movimiento).
+- **Consecuencias:** la única cifra de cierre que se guarda es el efectivo contado físicamente, para compararla con la calculada.
