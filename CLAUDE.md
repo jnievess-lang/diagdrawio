@@ -10,3 +10,6 @@
 ## Diagramas
 - Usar el plugin draw.io (`drawio@drawio`, configurado en `.claude/settings.json`).
 - Guardar los diagramas como archivos `.drawio` con nombres en minúsculas y separados por guiones.
+
+## Proyecto Editronic
+- Al trabajar en `editronic/`, leer primero `editronic/CLAUDE.md` y `editronic/project_memory.md`.
