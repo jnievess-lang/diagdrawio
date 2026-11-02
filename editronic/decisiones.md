@@ -78,3 +78,28 @@ Cada decisión de diseño con su contexto, alternativas y consecuencias. Las dec
 - **Decisión:** estos valores se calculan con consultas o vistas a partir de `movimientos_caja` y `sesiones_caja`; no son columnas.
 - **Alternativas descartadas:** guardar los totales (se desincronizan si se corrige o anula un movimiento).
 - **Consecuencias:** la única cifra de cierre que se guarda es el efectivo contado físicamente, para compararla con la calculada.
+- **Excepción propuesta:** los totales de `facturas` se guardan al emitir, porque un documento fiscal emitido no puede cambiar (por validar).
+
+### D-009 — Los abonos son movimientos de caja
+- **Fecha:** 2026-11-02
+- **Estado:** Propuesta (validar con el usuario)
+- **Contexto:** el historial de facturas muestra "Abonado", "Saldo" y un botón "Abonar"; la caja registra ingresos como `Venta FAC-000015 · Transferencia`. Es el mismo dinero visto desde dos pantallas.
+- **Decisión:** un abono es un `movimientos_caja` de tipo ingreso con `factura_id`. Abonado = suma de esos movimientos; saldo = total − abonado; estado Pagado/Pendiente = saldo igual a 0 o no. "Crédito" deja de ser método de pago: una venta a crédito es una factura con saldo.
+- **Alternativas descartadas:** tabla `abonos` aparte (el mismo pago quedaría en dos tablas y podrían no coincidir).
+- **Consecuencias:** no hace falta tabla de cuentas por cobrar. Solo se puede cobrar con caja abierta, también por transferencia (confirmar que el local trabaja así).
+
+### D-010 — Stock calculado desde `movimientos_inventario`
+- **Fecha:** 2026-11-02
+- **Estado:** Propuesta (validar con el usuario)
+- **Contexto:** el stock se edita a mano en el producto y no se sabe por qué cambia.
+- **Decisión:** el stock de un producto es la suma de entradas menos salidas en `movimientos_inventario`. Cada venta genera su salida automáticamente.
+- **Alternativas descartadas:** columna `stock` editable (sin trazabilidad); columna `stock` más movimientos (dos fuentes que pueden no coincidir).
+- **Consecuencias:** el stock inicial al migrar se carga como un movimiento de "ajuste inicial". Si en el futuro la consulta fuera lenta, se puede añadir una columna mantenida por la base de datos sin cambiar el modelo.
+
+### D-011 — Precios por tarifa en tabla aparte
+- **Fecha:** 2026-11-02
+- **Estado:** Propuesta (validar con el usuario)
+- **Contexto:** cada producto tiene tres columnas de precio: Público, Técnico y Mayorista.
+- **Decisión:** catálogo `tarifas` y tabla `precios_producto` (producto, tarifa, precio).
+- **Alternativas descartadas:** tres columnas en `productos`, válidas solo si las tarifas no cambiarán nunca.
+- **Consecuencias:** una tarifa nueva no cambia la estructura. Consultar el precio requiere unir dos tablas.
