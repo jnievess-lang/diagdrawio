@@ -8,11 +8,17 @@ Bitácora cronológica: cada cambio, en orden, con su motivo. La entrada más re
 - **Diagrama Producción:** vacío.
 - **Entidades propuestas (22):** `clientes`, `equipos`, `tipos_equipo`, `ordenes_reparacion`, `estados_orden`, `sesiones_caja`, `movimientos_caja`, `metodos_pago`, `usuarios`, `roles`, `facturas`, `detalle_factura`, `proformas`, `detalle_proforma`, `productos`, `categorias_producto`, `marcas`, `tarifas`, `precios_producto`, `movimientos_inventario`, `envios_correo`, `configuracion`.
 - **Pendiente:**
-  - Recibir las últimas capturas: detalle o edición de una orden, Dashboard y Perfil.
-  - Validar D-002, D-003 y D-006 a D-014.
-  - Resolver las dudas abiertas de `proyecto.md`.
+  - El usuario responde las dudas consolidadas de `proyecto.md` (grupos A a F).
+  - Con las respuestas: ajustar `entidades.md` y `decisiones.md`, y pedir la validación final.
+  - Solo después de validar: empezar `ERD-Editronic-Dev.drawio`.
 
 ## Bitácora
+
+### 2026-11-02 — Cierre del levantamiento y dudas consolidadas
+- **Qué:** última captura (Login). Se cerró el levantamiento: no hay más capturas. Se reunieron todas las dudas en `proyecto.md`, agrupadas (A servicio técnico, B ventas, C caja e inventario, D clientes y usuarios, E decisiones, F migración), cada una con una recomendación.
+- **Por qué:** el usuario pidió la lista completa de dudas para responderlas de una vez.
+- **Resuelto:** no hay registro público; las cuentas las crea el administrador. Usuario y correo deben ser únicos.
+- **Diagramas:** sin cambios.
 
 ### 2026-11-02 — Proformas, cuentas por cobrar, empleados y configuración
 - **Qué:** con 4 capturas más se añadieron `roles`, `proformas`, `detalle_proforma` y `configuracion`; se completó `usuarios` y se añadió `proforma_id` a `facturas`.

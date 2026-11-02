@@ -21,6 +21,7 @@ Ficha de cada entidad del modelo. Una entidad sin ficha completa no entra al dia
 | 12 | Cuentas por cobrar | Cuentas por cobrar | `facturas`, `movimientos_caja` (confirma D-009; no aporta tabla nueva) |
 | 13 | Empleados del sistema, cuenta del administrador y usuarios registrados | Empleados | `usuarios`, `roles` |
 | 14 | Datos de la empresa y personalización | Configuración | `configuracion` |
+| 15 | Inicio de sesión | Login | `usuarios` (confirma usuario y correo únicos) |
 
 ## Resumen
 
@@ -714,9 +715,9 @@ Ficha de cada entidad del modelo. Una entidad sin ficha completa no entra al dia
 
 ---
 
-## Pendiente de capturas
-| Módulo | Para qué |
-|---|---|
-| Órdenes (detalle, edición o factura de reparación) | Estados, técnico, diagnóstico, costos, entrega, repuestos |
-| Dashboard | Comprobar que todo lo que muestra se calcula con las tablas propuestas |
-| Perfil | Confirmar si es lo mismo que "Cuenta del administrador" |
+## Cierre del levantamiento
+No hay más capturas. Lo que no se vio se resuelve con las dudas de `proyecto.md`:
+- **Detalle de orden y factura de reparación:** dudas A2 a A9.
+- **Dashboard:** se asume que solo muestra indicadores calculados con estas tablas.
+- **Perfil:** se asume que edita el propio registro de `usuarios`.
+- **Login** (captura 15): entra con usuario o correo y contraseña; no hay registro público. Confirma que `usuarios.nombre_usuario` y `usuarios.correo` deben ser únicos.

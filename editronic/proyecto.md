@@ -44,15 +44,70 @@ Además gestiona inventario y facturación.
 - **Correo:** facturas y órdenes se envían en PDF mediante Gmail API desde el correo de la empresa.
 
 ## Dudas abiertas
-1. ~~**Inventario de equipos**~~: resuelta; son los equipos de clientes en reparación (vista de órdenes).
-2. **Facturación electrónica:** ¿las facturas `FAC-000016` están autorizadas por el SRI o son comprobantes internos? El RUC vacío en Configuración sugiere que son internas.
-3. ~~**Roles**~~: resuelta; Administrador, Técnico y Secretario/a. Falta saber los permisos de cada uno.
-4. **Compras y proveedores:** ¿se registra la compra de mercadería o el stock entra solo por ajuste?
-5. **Repuestos en reparaciones:** ¿se descuentan del inventario y se facturan en la misma factura de reparación?
-6. **Tarifa por cliente:** ¿cada cliente tiene una tarifa fija o se elige en cada venta?
-7. **Técnico asignado:** con el rol Técnico, ¿cada orden de reparación tiene un técnico responsable?
-8. **Proformas:** ¿siempre se cotiza a precio Público? ¿También se cotizan reparaciones?
-9. **Cláusulas:** ¿hay que conservar en cada orden las cláusulas vigentes cuando se imprimió?
+Lista única y completa de lo que falta decidir antes de diagramar. Cada duda trae una **recomendación**: si el usuario la acepta, basta responder "ok".
+
+### A. Servicio técnico
+| # | Duda | Recomendación | Afecta a |
+|---|---|---|---|
+| A1 | ¿La persona que deja el equipo puede ser distinta del dueño registrado? | Si siempre es el dueño, quitar `cliente_id` de la orden | `ordenes_reparacion` |
+| A2 | ¿Cuál es la lista completa de estados de una orden? | Recibido, En diagnóstico, En reparación, Reparado, Entregado, Sin reparación | `estados_orden` |
+| A3 | ¿Se guarda el historial de cambios de estado (quién y cuándo)? | Sí, con una tabla `historial_estados_orden` | Nueva tabla |
+| A4 | ¿Cada orden tiene un técnico asignado? | Sí, `tecnico_id` hacia `usuarios` | `ordenes_reparacion` |
+| A5 | ¿Se registran diagnóstico técnico, costo estimado, fecha de entrega o accesorios recibidos? | Al menos `diagnostico` y `fecha_entrega` | `ordenes_reparacion` |
+| A6 | Las cláusulas dicen que el diagnóstico se cobra aunque no se repare. ¿Se factura como un servicio del catálogo? | Sí, como producto con `es_servicio` | `productos`, `detalle_factura` |
+| A7 | Las cláusulas dan 3 meses de garantía. ¿Hay que enlazar una orden por garantía con la orden original? | Sí, `orden_garantia_id` opcional en la orden | `ordenes_reparacion` |
+| A8 | ¿Una orden puede tener más de una factura? | No: una orden, como máximo una factura | `facturas` |
+| A9 | ¿Los repuestos usados en una reparación se descuentan del inventario y van en la misma factura? | Sí | `detalle_factura`, `movimientos_inventario` |
+
+### B. Ventas, facturas y proformas
+| # | Duda | Recomendación | Afecta a |
+|---|---|---|---|
+| B1 | ¿Las facturas están autorizadas por el SRI o son comprobantes internos? | Internos ahora (el RUC está vacío), dejando claro qué faltaría para el SRI | `facturas`, `configuracion` |
+| B2 | ¿Se usan descuentos? | No añadirlos si no se usan | `detalle_factura` |
+| B3 | ¿Todos los productos llevan IVA 15 % o hay alguno con 0 %? | Si hay 0 %, `porcentaje_iva` en el producto | `productos` |
+| B4 | ¿Cada cliente tiene una tarifa fija o se elige en cada venta? | Tarifa por defecto en el cliente, modificable en la venta | `clientes` |
+| B5 | ¿Las tres tarifas (Público, Técnico, Mayorista) son definitivas? | Tabla `precios_producto` (D-011) si pueden cambiar | `precios_producto` |
+| B6 | ¿Las proformas cotizan siempre a precio Público? ¿También cotizan reparaciones? | Público; solo productos y servicios del catálogo | `proformas` |
+| B7 | Al convertir una proforma vigente, ¿se respeta el precio cotizado? | Sí | `detalle_proforma` |
+| B8 | ¿Totales de factura guardados al emitir (excepción a D-008)? | Sí | `facturas` |
+
+### C. Caja e inventario
+| # | Duda | Recomendación | Afecta a |
+|---|---|---|---|
+| C1 | ¿Hay una sola caja o varios puntos de cobro? | Una sola caja | `sesiones_caja` |
+| C2 | ¿Todo cobro, también por transferencia, se hace con la caja abierta? | Sí (requisito de D-009) | `movimientos_caja` |
+| C3 | ¿Se registran compras a proveedores? | Si no se usan, entradas por ajuste con motivo | Posibles `proveedores`, `compras` |
+| C4 | ¿Se necesita el precio de compra? Hoy siempre está en $0 | Sí, para calcular ganancia | `productos` |
+| C5 | "OEM": ¿marca del catálogo o sin marca? | Valor del catálogo "Genérico/OEM" | `marcas` |
+| C6 | ¿La categoría "servicio" basta o se mantiene `es_servicio`? | Mantener `es_servicio` | `productos` |
+
+### D. Clientes, usuarios y configuración
+| # | Duda | Recomendación | Afecta a |
+|---|---|---|---|
+| D1 | ¿Nombre del cliente en un solo campo (`razon_social`)? | Sí | `clientes` |
+| D2 | ¿Se usa "consumidor final" para ventas sin cliente identificado? | Sí, como tipo de identificación | `clientes` |
+| D3 | ¿Los permisos de cada rol se configuran en el sistema o son fijos? | Fijos en el código | `roles` |
+| D4 | El login acepta usuario o correo. Si un usuario no tiene correo, solo entra con su usuario: ¿es aceptable? | Sí | `usuarios` |
+| D5 | ¿Hay que conservar en cada orden las cláusulas vigentes al imprimirla? | No por ahora | `ordenes_reparacion` |
+
+### E. Decisiones por validar
+| # | Decisión | Recomendación |
+|---|---|---|
+| E1 | D-002 `snake_case` en español, PK `id`, FK `tabla_id` | Aceptar |
+| E2 | D-003 / D-005 tipos de PostgreSQL, importes `NUMERIC(12,2)` | Aceptar |
+| E3 | D-006 a D-014 (ver `decisiones.md`) | Aceptar |
+
+### F. Migración
+| # | Duda | Recomendación | Afecta a |
+|---|---|---|---|
+| F1 | ¿Se migrarán los datos del sistema viejo a la base nueva? | Sí, con limpieza de marcas, categorías y modelos (hallazgos 6 y 8) | Plan de migración |
+
+### Resueltas
+- Inventario de equipos: vista de las órdenes de reparación.
+- Roles: Administrador, Técnico, Secretario/a.
+- Cuentas por cobrar: facturas con saldo (D-009).
+- Empleados = usuarios (D-014).
+- Acceso: solo inicio de sesión con usuario o correo; no hay registro público (las cuentas las crea el administrador).
 
 ## Glosario
 | Término | Significado |
