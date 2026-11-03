@@ -13,6 +13,14 @@ Bitácora cronológica: cada cambio, en orden, con su motivo. La entrada más re
 
 ## Bitácora
 
+### 2026-11-03 — Prefijo `tb`, PK con nombre propio y cardinalidades en todas las hojas
+- **Qué:**
+  - Las 35 tablas pasan a `tb` + nombre sin guiones bajos (`tbdetalleproforma`).
+  - Las 31 PK simples pasan de `id` a `<tabla_en_singular>_id` (`detalle_proforma_id`); las 4 PK compuestas no cambian.
+  - El ajuste de etiquetas y holguras de la hoja 0 se aplica también a las hojas 1 a 5.
+- **Dónde:** `entidades.md`, `proyecto.md`, `decisiones.md`, `analisis-bd-vieja.md`, `CLAUDE.md`, el generador y `ERD-Editronic-Dev.drawio` (6 hojas regeneradas).
+- **Decisión:** D-028 (modifica D-002). Las entradas anteriores de esta bitácora conservan los nombres antiguos.
+
 ### 2026-11-03 — Ajuste de cardinalidades en la hoja 0
 - **Qué:** el usuario detectó en la hoja "0 · Diagrama completo" tres problemas: etiquetas `0..N` encima de la pata de gallo y del borde de la tabla, etiquetas `1` debajo de su línea (encima de la siguiente) y cruces de líneas pegados a las etiquetas.
 - **Corrección, solo en la hoja 0:**

@@ -11,7 +11,7 @@ md = open(sys.argv[1], encoding="utf8").read()
 tablas = {}
 for sec in re.split(r"\n## ", md)[1:]:
     nombre = sec.split("\n", 1)[0].strip()
-    if not re.fullmatch(r"[a-z_]+", nombre):
+    if not re.fullmatch(r"tb[a-z]+", nombre):
         continue
     filas = []
     for l in sec.split("\n"):
@@ -30,20 +30,20 @@ assert len(tablas) == 35, (len(tablas), sorted(tablas))
 
 # ---------- 2. FK -> tabla referenciada ----------
 FK = {
- "tipo_identificacion_id": "tipos_identificacion", "rol_id": "roles", "permiso_id": "permisos",
- "usuario_id": "usuarios", "usuario_apertura_id": "usuarios", "usuario_cierre_id": "usuarios", "tecnico_id": "usuarios",
- "sesion_id": "sesiones", "reemplazado_por_id": "refresh_tokens", "tarifa_id": "tarifas", "cliente_id": "clientes",
- "tipo_equipo_id": "tipos_equipo", "marca_id": "marcas", "equipo_id": "equipos", "orden_garantia_id": "ordenes_reparacion",
- "pdf_ingreso_archivo_id": "archivos", "pdf_archivo_id": "archivos", "archivo_id": "archivos", "logo_archivo_id": "archivos",
- "orden_reparacion_id": "ordenes_reparacion", "estado_orden_id": "estados_orden", "categoria_producto_id": "categorias_producto",
- "tipo_iva_id": "tipos_iva", "tipo_iva_predeterminado_id": "tipos_iva", "producto_id": "productos", "factura_id": "facturas",
- "compra_id": "compras", "proveedor_id": "proveedores", "proforma_id": "proformas", "sesion_caja_id": "sesiones_caja",
- "metodo_pago_id": "metodos_pago",
+ "tipo_identificacion_id": "tbtiposidentificacion", "rol_id": "tbroles", "permiso_id": "tbpermisos",
+ "usuario_id": "tbusuarios", "usuario_apertura_id": "tbusuarios", "usuario_cierre_id": "tbusuarios", "tecnico_id": "tbusuarios",
+ "sesion_id": "tbsesiones", "reemplazado_por_id": "tbrefreshtokens", "tarifa_id": "tbtarifas", "cliente_id": "tbclientes",
+ "tipo_equipo_id": "tbtiposequipo", "marca_id": "tbmarcas", "equipo_id": "tbequipos", "orden_garantia_id": "tbordenesreparacion",
+ "pdf_ingreso_archivo_id": "tbarchivos", "pdf_archivo_id": "tbarchivos", "archivo_id": "tbarchivos", "logo_archivo_id": "tbarchivos",
+ "orden_reparacion_id": "tbordenesreparacion", "estado_orden_id": "tbestadosorden", "categoria_producto_id": "tbcategoriasproducto",
+ "tipo_iva_id": "tbtiposiva", "tipo_iva_predeterminado_id": "tbtiposiva", "producto_id": "tbproductos", "factura_id": "tbfacturas",
+ "compra_id": "tbcompras", "proveedor_id": "tbproveedores", "proforma_id": "tbproformas", "sesion_caja_id": "tbsesionescaja",
+ "metodo_pago_id": "tbmetodospago",
 }
 # Lado "muchos" obligatorio (1..N): el padre siempre tiene al menos un hijo
-UNO_A_MUCHOS = {("facturas", "detalle_factura"), ("proformas", "detalle_proforma"), ("compras", "detalle_compra"),
-                ("ordenes_reparacion", "historial_estados_orden"), ("equipos", "ordenes_reparacion"),
-                ("sesiones", "refresh_tokens")}
+UNO_A_MUCHOS = {("tbfacturas", "tbdetallefactura"), ("tbproformas", "tbdetalleproforma"), ("tbcompras", "tbdetallecompra"),
+                ("tbordenesreparacion", "tbhistorialestadosorden"), ("tbequipos", "tbordenesreparacion"),
+                ("tbsesiones", "tbrefreshtokens")}
 
 relaciones = []  # (hijo, col_fk, padre, lado_padre, lado_hijo)
 for t, filas in tablas.items():
@@ -64,28 +64,28 @@ FLECHA = {"1": "ERmandOne", "0..1": "ERzeroToOne", "1..N": "ERoneToMany", "0..N"
 
 # ---------- 3. Hojas (columnas; "*" = tabla de referencia de otro módulo) ----------
 HOJAS = [
- ("seguridad", "1 · Seguridad", [["roles", "permisos"], ["usuarios", "roles_permisos"], ["sesiones"], ["refresh_tokens"]]),
+ ("seguridad", "1 · Seguridad", [["tbroles", "tbpermisos"], ["tbusuarios", "tbrolespermisos"], ["tbsesiones"], ["tbrefreshtokens"]]),
  ("servicio", "2 · Clientes y servicio técnico",
-  [["tipos_identificacion", "tarifas*"], ["clientes", "tipos_equipo", "marcas*"], ["equipos", "usuarios*", "archivos*"],
-   ["ordenes_reparacion", "estados_orden"], ["historial_estados_orden", "ordenes_archivos"]]),
- ("productos", "3 · Productos, inventario y compras",
-  [["categorias_producto", "marcas", "tipos_iva", "tipos_identificacion*"],
-   ["productos", "tarifas", "archivos*", "proveedores", "usuarios*"],
-   ["precios_producto", "productos_archivos", "compras", "facturas*"], ["detalle_compra", "movimientos_inventario"]]),
+  [["tbtiposidentificacion", "tbtarifas*"], ["tbclientes", "tbtiposequipo", "tbmarcas*"], ["tbequipos", "tbusuarios*", "tbarchivos*"],
+   ["tbordenesreparacion", "tbestadosorden"], ["tbhistorialestadosorden", "tbordenesarchivos"]]),
+ ("tbproductos", "3 · Productos, inventario y compras",
+  [["tbcategoriasproducto", "tbmarcas", "tbtiposiva", "tbtiposidentificacion*"],
+   ["tbproductos", "tbtarifas", "tbarchivos*", "tbproveedores", "tbusuarios*"],
+   ["tbpreciosproducto", "tbproductosarchivos", "tbcompras", "tbfacturas*"], ["tbdetallecompra", "tbmovimientosinventario"]]),
  ("ventas", "4 · Ventas y caja",
-  [["clientes*", "ordenes_reparacion*", "archivos*", "usuarios*"], ["proformas", "sesiones_caja", "metodos_pago", "productos*"],
-   ["facturas", "detalle_proforma", "tarifas*", "compras*"], ["detalle_factura", "movimientos_caja"]]),
- ("archivos", "5 · Archivos, correo y configuración",
-  [["usuarios*"], ["archivos", "facturas*", "ordenes_reparacion*", "tipos_iva*"], ["envios_correo", "configuracion"]]),
+  [["tbclientes*", "tbordenesreparacion*", "tbarchivos*", "tbusuarios*"], ["tbproformas", "tbsesionescaja", "tbmetodospago", "tbproductos*"],
+   ["tbfacturas", "tbdetalleproforma", "tbtarifas*", "tbcompras*"], ["tbdetallefactura", "tbmovimientoscaja"]]),
+ ("tbarchivos", "5 · Archivos, correo y configuración",
+  [["tbusuarios*"], ["tbarchivos", "tbfacturas*", "tbordenesreparacion*", "tbtiposiva*"], ["tbenvioscorreo", "tbconfiguracion"]]),
 ]
 # Hoja completa: las 35 tablas, en columnas por dependencia (los padres siempre a la izquierda)
 HOJA_COMPLETA = ("completo", "0 · Diagrama completo", [
-  ["roles", "permisos", "tipos_identificacion", "tarifas", "tipos_equipo", "marcas", "categorias_producto", "tipos_iva", "metodos_pago", "estados_orden"],
-  ["usuarios", "roles_permisos", "clientes", "proveedores", "productos"],
-  ["sesiones", "archivos", "equipos", "compras", "precios_producto", "sesiones_caja"],
-  ["refresh_tokens", "configuracion", "ordenes_reparacion", "proformas", "productos_archivos", "detalle_compra"],
-  ["historial_estados_orden", "ordenes_archivos", "facturas", "detalle_proforma"],
-  ["envios_correo", "detalle_factura", "movimientos_caja", "movimientos_inventario"],
+  ["tbroles", "tbpermisos", "tbtiposidentificacion", "tbtarifas", "tbtiposequipo", "tbmarcas", "tbcategoriasproducto", "tbtiposiva", "tbmetodospago", "tbestadosorden"],
+  ["tbusuarios", "tbrolespermisos", "tbclientes", "tbproveedores", "tbproductos"],
+  ["tbsesiones", "tbarchivos", "tbequipos", "tbcompras", "tbpreciosproducto", "tbsesionescaja"],
+  ["tbrefreshtokens", "tbconfiguracion", "tbordenesreparacion", "tbproformas", "tbproductosarchivos", "tbdetallecompra"],
+  ["tbhistorialestadosorden", "tbordenesarchivos", "tbfacturas", "tbdetalleproforma"],
+  ["tbenvioscorreo", "tbdetallefactura", "tbmovimientoscaja", "tbmovimientosinventario"],
 ])
 assert sorted(t for c in HOJA_COMPLETA[2] for t in c) == sorted(tablas)
 completas = [t for _, _, cols in HOJAS for c in cols for t in c if not t.endswith("*")]
@@ -119,7 +119,7 @@ def tabla_xml(pfx, nombre, filas, x, y, ref, hpk):
     return o, 30 + sum(alt), centros
 
 def hoja(pid, cols, fino=False):
-    # fino=True (solo hoja 0): más separación entre salidas, holgura junto a las tablas y etiquetas encima de la línea
+    # fino=True (todas las hojas): más separación entre salidas, holgura junto a las tablas y etiquetas encima de la línea
     sep, holg = (28, 70) if fino else (18, 30)
     pfx = pid + "."
     col_de, es_ref = {}, {}
@@ -206,7 +206,7 @@ def pk_col(t):
 
 out = '<mxfile host="Claude Code">\n'
 for pid, nombre, cols in [HOJA_COMPLETA] + HOJAS:
-    cuerpo, refs, n = hoja(pid, cols, fino=(pid == "completo"))
+    cuerpo, refs, n = hoja(pid, cols, fino=True)
     print(f"{nombre}: {sum(1 for c in cols for t in c if not t.endswith('*'))} tablas, referencias: {', '.join(refs) or '-'}; {n} relaciones", file=sys.stderr)
     out += f'  <diagram id="{pid}" name={q(nombre)}>\n    <mxGraphModel grid="1" gridSize="10" guides="1" connect="1" arrows="1" page="0" adaptiveColors="auto">\n      <root>\n        <mxCell id="0"/>\n        <mxCell id="1" parent="0"/>\n        ' + cuerpo + '\n      </root>\n    </mxGraphModel>\n  </diagram>\n'
 out += "</mxfile>\n"

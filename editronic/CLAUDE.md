@@ -15,7 +15,7 @@ Estas reglas son obligatorias para cualquier cambio dentro de `editronic/`.
 
 ## Justificación y valoración crítica
 - Ninguna entidad entra al diagrama sin justificación en `entidades.md`: qué problema resuelve, qué pasaría si no existiera y qué alternativas se descartaron.
-- Ejemplo: si se propone `movimiento_inventarios`, explicar por qué no basta con un campo `stock` en `productos` (trazabilidad, auditoría, historial de entradas y salidas).
+- Ejemplo: si se propone `movimiento_inventarios`, explicar por qué no basta con un campo `stock` en `tbproductos` (trazabilidad, auditoría, historial de entradas y salidas).
 - Si una petición me parece incorrecta o arriesgada (redundancia, mala normalización, pérdida de datos), decirlo antes de aplicarla y proponer alternativas.
 - No inventar entidades ni atributos que no se hayan pedido o justificado.
 
@@ -28,7 +28,7 @@ Estas reglas son obligatorias para cualquier cambio dentro de `editronic/`.
 ## Prohibido en el modelo
 - Texto libre para valores de una lista: siempre tabla catálogo con FK.
 - JSON o arrays para datos relacionales (líneas de factura, pagos, permisos).
-- Archivos en base64 o binario en la BD: solo nombre, ruta y metadatos en `archivos`; el archivo vive en el backend o en un servicio externo.
+- Archivos en base64 o binario en la BD: solo nombre, ruta y metadatos en `tbarchivos`; el archivo vive en el backend o en un servicio externo.
 - Referencias genéricas sin FK (`tabla`, `registro_id`).
 - Fechas como texto.
 - Datos de otra tabla copiados (nombre, cédula del cliente…), salvo copias intencionales del momento de la venta (precio, IVA, costo), justificadas en su ficha.
@@ -46,13 +46,14 @@ Estas reglas son obligatorias para cualquier cambio dentro de `editronic/`.
 - Líneas ortogonales que van por los huecos entre columnas o por carriles encima de las tablas; nunca atraviesan una tabla. Cada relación sale de su propio punto de la fila PK.
 - Tablas de otro módulo: solo su fila PK y borde discontinuo (referencia); su ficha completa está en la hoja de su módulo.
 - Sin recuadro de leyenda en las hojas.
-- Hoja 0: etiquetas de cardinalidad encima de su línea, sin tapar símbolos ni bordes; 28 px entre salidas de una misma PK y 70 px libres junto a las tablas antes del primer cruce.
+- Todas las hojas: etiquetas de cardinalidad encima de su línea, sin tapar símbolos ni bordes; 28 px entre salidas de una misma PK y 70 px libres junto a las tablas antes del primer cruce.
 - Hojas de `ERD-Editronic-Dev.drawio`: 0 Diagrama completo (todas las tablas, en columnas por dependencia) y una por módulo (1 Seguridad, 2 Clientes y servicio técnico, 3 Productos, inventario y compras, 4 Ventas y caja, 5 Archivos, correo y configuración).
 - Todas las hojas se generan desde `entidades.md` con `herramientas/generar_erd.py`, para que el diagrama y el documento digan lo mismo. Cambiar primero `entidades.md` y volver a generar.
 
 ## Nombres y tipos de datos
-- Tablas y columnas en `snake_case`, en español y sin tildes ni ñ (ejemplo: `movimiento_inventarios`, `fecha_creacion`).
-- Clave primaria: `id`. Clave foránea: `<tabla_en_singular>_id` (ejemplo: `producto_id`).
+- Tablas: prefijo `tb` y nombre en minúsculas sin guiones bajos, en español y sin tildes ni ñ (ejemplo: `tbdetalleproforma`, `tbmovimientosinventario`) (D-028).
+- Columnas en `snake_case` (ejemplo: `fecha_creacion`).
+- Clave primaria: `<tabla_en_singular>_id` (ejemplo: `detalle_proforma_id` en `tbdetalleproforma`). Clave foránea: el mismo nombre que la PK a la que apunta (ejemplo: `producto_id`), salvo cuando el rol lo exige (`tecnico_id`, `usuario_apertura_id`) (D-028).
 - Motor: PostgreSQL (D-005). Usar sus tipos en el diagrama.
 - PK: `BIGINT GENERATED ALWAYS AS IDENTITY`. No usar `SERIAL`.
 - Dinero: `NUMERIC(12,2)`. Prohibido `FLOAT`, `REAL` o `MONEY` para importes.

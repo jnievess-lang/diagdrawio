@@ -52,42 +52,42 @@ Tienen **prioridad sobre la BD vieja**.
 | # | Respuesta | Dónde se aplica |
 |---|---|---|
 | A1 | Quien trae el equipo puede no ser a quien se factura | D-017 |
-| A2 | Estados: Recibido, En diagnóstico, Esperando aprobación, En reparación, Reparado, Entregado (+ "No aprobado", P2) | `estados_orden` |
-| A3 | Sí, historial de estados | `historial_estados_orden`, D-016 |
-| A4 | Sí, técnico asignado | `ordenes_reparacion.tecnico_id` |
-| A5 | Diagnóstico, costo, fecha y accesorios | `ordenes_reparacion` |
+| A2 | Estados: Recibido, En diagnóstico, Esperando aprobación, En reparación, Reparado, Entregado (+ "No aprobado", P2) | `tbestadosorden` |
+| A3 | Sí, historial de estados | `tbhistorialestadosorden`, D-016 |
+| A4 | Sí, técnico asignado | `tbordenesreparacion.tecnico_id` |
+| A5 | Diagnóstico, costo, fecha y accesorios | `tbordenesreparacion` |
 | A6 | El diagnóstico se cobra como servicio (aunque el cliente se lleve el equipo a otro lado) | Producto de categoría Servicio |
 | A7 | Garantía enlazada con la orden original y configurable por tipo de equipo | D-015 |
-| A8 | Una orden, una factura como máximo | `facturas.orden_reparacion_id` único |
-| A9 | Los repuestos se descuentan del inventario y van en la factura | `movimientos_inventario` |
+| A8 | Una orden, una factura como máximo | `tbfacturas.orden_reparacion_id` único |
+| A9 | Los repuestos se descuentan del inventario y van en la factura | `tbmovimientosinventario` |
 | B1 | Facturas internas | Sin campos del SRI por ahora |
 | B2 | Sí hay descuentos, configurables por el dueño | D-019 |
 | B3 | Hay productos con IVA 0 % | D-018 |
-| B4 | Tarifa fija por cliente, modificable en la venta | `clientes.tarifa_id` |
+| B4 | Tarifa fija por cliente, modificable en la venta | `tbclientes.tarifa_id` |
 | B5 | Tarifas configurables | D-011 |
-| B6 | Proformas a precio Público, solo productos y servicios del catálogo | `tarifas.es_predeterminada` |
-| B7 | Al convertir una proforma se respeta el precio cotizado | `detalle_proforma` |
+| B6 | Proformas a precio Público, solo productos y servicios del catálogo | `tbtarifas.es_predeterminada` |
+| B7 | Al convertir una proforma se respeta el precio cotizado | `tbdetalleproforma` |
 | B8 | Totales de factura guardados al emitir | Excepción a D-008 |
-| C1 | Una sola caja | `sesiones_caja` |
+| C1 | Una sola caja | `tbsesionescaja` |
 | C2 | Todo cobro con caja abierta | D-009 |
 | C3 | Sí se registran compras a proveedores | D-020 |
 | C4 | Sí se necesita el precio de compra | D-020 |
 | C5 | OEM indica repuesto con la calidad del fabricante original | D-022 |
 | C6 | El servicio se define por la categoría | D-021 |
-| D1 | Un solo campo `razon_social` (se atiende a empresas) | `clientes` |
-| D2 | Sí, consumidor final | `tipos_identificacion` |
+| D1 | Un solo campo `razon_social` (se atiende a empresas) | `tbclientes` |
+| D2 | Sí, consumidor final | `tbtiposidentificacion` |
 | D3 | Permisos en la BD, configurables desde el panel | D-023 |
-| D4 | Usuario sin correo entra con su usuario | `usuarios` |
-| D5 | No se copian las cláusulas en cada orden | `configuracion` |
+| D4 | Usuario sin correo entra con su usuario | `tbusuarios` |
+| D5 | No se copian las cláusulas en cada orden | `tbconfiguracion` |
 | E | Todas las decisiones D-002 a D-014 aceptadas | `decisiones.md` |
 | F | La migración la hace el usuario. Faltan tablas de archivos (no base64) y de autenticación. No usar JSON para líneas | D-024, D-025 |
 
 ## Preguntas finales (respondidas el 2026-11-03)
 | # | Respuesta | Dónde se aplica |
 |---|---|---|
-| P1 | Las compras se pagan con egreso de caja; sin cuentas por pagar por ahora | D-026, `movimientos_caja.compra_id` |
-| P2 | Se añade el estado "No aprobado" | `estados_orden` (no final: luego pasa a Entregado) |
-| P3 | Sí, fotos del equipo al recibirlo | `ordenes_archivos` |
+| P1 | Las compras se pagan con egreso de caja; sin cuentas por pagar por ahora | D-026, `tbmovimientoscaja.compra_id` |
+| P2 | Se añade el estado "No aprobado" | `tbestadosorden` (no final: luego pasa a Entregado) |
+| P3 | Sí, fotos del equipo al recibirlo | `tbordenesarchivos` |
 | P4 | Sin "olvidé mi contraseña" por ahora | `tokens_recuperacion` descartada |
 | P5 | OEM como `calidad_repuesto` (Original, OEM, Genérico) | D-022 |
 | P6 | Archivos con tablas de vínculo por uso | D-024 |
