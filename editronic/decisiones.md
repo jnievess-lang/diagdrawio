@@ -223,3 +223,20 @@ Cada decisión de diseño con su contexto, alternativas y consecuencias. Las dec
 - **Decisión:** el pago de una compra es un egreso en `movimientos_caja` con `compra_id`, igual que un abono es un ingreso con `factura_id` (D-009). Un `CHECK` impide que un movimiento tenga ambas FK.
 - **Alternativas descartadas:** tabla `pagos_proveedores` (el mismo dinero quedaría en dos tablas); tabla `cuentas_por_pagar` (no hay compras a crédito).
 - **Consecuencias:** el cuadre de caja incluye los pagos a proveedores. Si en el futuro hay compras a crédito, el saldo de cada compra se calcula como total − egresos enlazados, sin tabla nueva.
+
+### D-027 — Formato y organización del diagrama
+- **Fecha:** 2026-11-03
+- **Estado:** Aceptada (el usuario eligió la versión 1 del ejemplo)
+- **Contexto:** se compararon tres versiones del ejemplo (con o sin columna NULL, con o sin etiquetas de cardinalidad).
+- **Decisión:**
+  - Tablas con 4 columnas (clave, nombre, tipo, NULL).
+  - Cardinalidad con pata de gallo y etiqueta en cada extremo.
+  - Sin leyenda.
+  - Una hoja por módulo y, después, una hoja con todas las entidades.
+  - Las tablas de otros módulos aparecen como referencia (solo PK, borde discontinuo).
+  - Líneas ortogonales que no cruzan tablas.
+- **Cardinalidad usada:**
+  - Lado del padre: `1` si la FK es obligatoria, `0..1` si admite nulos.
+  - Lado del hijo: `0..1` si la FK es única; `1..N` cuando el padre siempre tiene al menos un hijo (factura, proforma y compra con su detalle; orden con su historial; equipo con sus órdenes; sesión con sus refresh tokens); `0..N` en el resto.
+- **Alternativas descartadas:** versiones 2 y 3 (sin columna NULL: el diagrama no mostraría qué columnas son opcionales); una sola hoja con 35 tablas como única vista (ilegible).
+- **Consecuencias:** las hojas por módulo se regeneran desde `entidades.md` con `herramientas/generar_erd.py`.

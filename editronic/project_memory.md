@@ -3,15 +3,28 @@
 Bitácora cronológica: cada cambio, en orden, con su motivo. La entrada más reciente va arriba.
 
 ## Estado actual
-- **Fase:** levantamiento de entidades del sistema viejo a partir de capturas. **No se modifican los diagramas** hasta que el usuario tenga el panorama completo y valide `entidades.md`.
-- **Diagrama Dev:** vacío.
+- **Fase:** diagrama Dev en revisión.
+- **`entidades.md`:** validado por el usuario (35 tablas, 27 decisiones).
+- **Diagrama Dev:** 5 hojas por módulo generadas, pendientes de revisión del usuario.
 - **Diagrama Producción:** vacío.
-- **Entidades propuestas (22):** `clientes`, `equipos`, `tipos_equipo`, `ordenes_reparacion`, `estados_orden`, `sesiones_caja`, `movimientos_caja`, `metodos_pago`, `usuarios`, `roles`, `facturas`, `detalle_factura`, `proformas`, `detalle_proforma`, `productos`, `categorias_producto`, `marcas`, `tarifas`, `precios_producto`, `movimientos_inventario`, `envios_correo`, `configuracion`.
 - **Pendiente:**
-  - Validación final de `entidades.md` (35 tablas). No quedan preguntas abiertas.
-  - Solo después de validar: empezar `ERD-Editronic-Dev.drawio`.
+  1. El usuario revisa las 5 hojas.
+  2. Con su aprobación: añadir a Dev la hoja con todas las entidades.
+  3. Después, pasar a Producción solo con aprobación explícita.
 
 ## Bitácora
+
+### 2026-11-03 — Hojas por módulo en ERD-Editronic-Dev.drawio
+- **Qué:**
+  - El usuario eligió la versión 1 del ejemplo (columna NULL y etiquetas de cardinalidad) y pidió no poner leyenda.
+  - Se generaron 5 hojas en `ERD-Editronic-Dev.drawio`: Seguridad (6 tablas), Clientes y servicio técnico (8), Productos, inventario y compras (11), Ventas y caja (7) y Archivos, correo y configuración (3). Las 35 tablas aparecen completas una vez, con 65 relaciones.
+- **Cómo:** `herramientas/generar_erd.py` lee las columnas de `entidades.md`, así el diagrama no puede desviarse del documento.
+- **Ajustes durante la generación:**
+  1. Primera versión con líneas diagonales: atravesaban tablas.
+  2. Cambio a líneas ortogonales por huecos y carriles.
+  3. Varias relaciones desde la misma PK se superponían: cada una sale ahora de su propio punto, y la fila PK crece cuando hace falta.
+- **Decisión:** D-027 (formato del diagrama).
+- **Pendiente:** hoja con todas las entidades, tras la aprobación del usuario.
 
 ### 2026-11-03 — Respuestas finales (P1 a P7)
 - **Qué:**

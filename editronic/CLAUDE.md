@@ -41,8 +41,13 @@ Estas reglas son obligatorias para cualquier cambio dentro de `editronic/`.
 ## Estilo de los diagramas
 - Figura: la Tabla de la sección "Relación de la entidad" de draw.io (una fila por atributo).
 - Color de todas las entidades: relleno `#dae8fc`, borde `#6c8ebf`. No usar otros colores.
-- Columna de claves: `PK`, `FK`, `FK1`, `FK2`…; PK en negrita y subrayada.
-- Relaciones: notación pata de gallo, ancladas a la fila PK y a la fila FK (nunca líneas sueltas).
+- Cuatro columnas por fila: clave (`PK`, `FK`, `UQ` o combinadas como `PK,FK`), nombre, tipo de PostgreSQL y `NULL` si admite nulos (vacío = NOT NULL). La PK va en negrita y subrayada. Sin descripción: eso queda en `entidades.md`.
+- Relaciones: pata de gallo, ancladas a la fila PK y a la fila FK (nunca líneas sueltas), con la cardinalidad escrita en cada extremo (`1`, `0..1`, `1..N`, `0..N`).
+- Líneas ortogonales que van por los huecos entre columnas o por carriles encima de las tablas; nunca atraviesan una tabla. Cada relación sale de su propio punto de la fila PK.
+- Tablas de otro módulo: solo su fila PK y borde discontinuo (referencia); su ficha completa está en la hoja de su módulo.
+- Sin recuadro de leyenda en las hojas.
+- Hojas de `ERD-Editronic-Dev.drawio`: una por módulo (1 Seguridad, 2 Clientes y servicio técnico, 3 Productos, inventario y compras, 4 Ventas y caja, 5 Archivos, correo y configuración) y, cuando el usuario lo apruebe, una con todas las entidades.
+- Las hojas por módulo se generan desde `entidades.md` con `herramientas/generar_erd.py`, para que el diagrama y el documento digan lo mismo. Cambiar primero `entidades.md` y volver a generar.
 
 ## Nombres y tipos de datos
 - Tablas y columnas en `snake_case`, en español y sin tildes ni ñ (ejemplo: `movimiento_inventarios`, `fecha_creacion`).
