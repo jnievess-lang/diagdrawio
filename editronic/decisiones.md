@@ -138,7 +138,7 @@ Cada decisión de diseño con su contexto, alternativas y consecuencias. Las dec
 
 ### D-016 — Historial de estados y estado actual calculado
 - **Fecha:** 2026-11-03
-- **Estado:** Propuesta (validar con el usuario)
+- **Estado:** Aceptada (2026-11-03, respuesta P7)
 - **Contexto:** el usuario pidió guardar quién y cuándo cambió cada estado (respuesta A3).
 - **Decisión:** `historial_estados_orden` registra cada cambio. El estado actual de una orden es el último registro; no hay columna de estado en la orden. Las fechas de reparación y de entrega salen del historial.
 - **Alternativas descartadas:** guardar también el estado actual en la orden (dos fuentes que pueden no coincidir, igual que el stock en D-010).
@@ -186,7 +186,7 @@ Cada decisión de diseño con su contexto, alternativas y consecuencias. Las dec
 
 ### D-022 — OEM es la calidad del repuesto, no una marca
 - **Fecha:** 2026-11-03
-- **Estado:** Propuesta (validar con el usuario)
+- **Estado:** Aceptada (2026-11-03, respuesta P5)
 - **Contexto:** el sistema viejo tiene "OEM" como marca. El usuario explica que OEM indica que el repuesto cumple las especificaciones y la calidad del fabricante original (respuesta C5).
 - **Decisión:** la categoría es Repuesto y `productos.calidad_repuesto` indica `original`, `oem` o `generico` (CHECK). La marca es la del fabricante, si se conoce.
 - **Alternativas descartadas:** "OEM" como marca (no es un fabricante); categorías "Repuesto OEM" y "Repuesto original" (multiplica categorías).
@@ -202,7 +202,7 @@ Cada decisión de diseño con su contexto, alternativas y consecuencias. Las dec
 
 ### D-024 — Archivos con tablas de vínculo por uso
 - **Fecha:** 2026-11-03
-- **Estado:** Propuesta (validar con el usuario)
+- **Estado:** Aceptada (2026-11-03, respuesta P6)
 - **Contexto:** el sistema viejo guarda imágenes en base64. El usuario propone dos tablas: una con ruta y nombre del archivo, y otra que indique dónde se usa y qué tabla lo usa.
 - **Decisión:** se acepta la tabla `archivos` tal como la propone el usuario. Para el uso, en lugar de una tabla genérica (`tabla`, `registro_id`), una FK por uso: `productos_archivos`, `ordenes_archivos` y columnas `*_archivo_id` para PDF y logo.
 - **Alternativas descartadas:** tabla genérica `archivos_vinculos(tabla, registro_id)`. Es flexible, pero `registro_id` no puede tener FK: se puede apuntar a un registro que no existe o escribir mal el nombre de la tabla (`"producto"` en vez de `"productos"`). Es el mismo problema que la categoría en texto libre.
@@ -215,3 +215,11 @@ Cada decisión de diseño con su contexto, alternativas y consecuencias. Las dec
 - **Decisión:** `sesiones` (una por dispositivo) y `refresh_tokens` (rotación con detección de reutilización); los access tokens no se guardan; bloqueo por intentos fallidos en `usuarios`.
 - **Alternativas descartadas:** solo JWT sin tablas (no se puede revocar); un único refresh token por sesión (no detecta robo).
 - **Consecuencias:** se puede cerrar sesión en todos los dispositivos y cortar el acceso de un usuario desactivado de inmediato.
+
+### D-026 — Pagos a proveedores como egresos de caja
+- **Fecha:** 2026-11-03
+- **Estado:** Aceptada (respuesta P1)
+- **Contexto:** las compras a distribuidores se pagan desde la caja; no hay cuentas por pagar por ahora.
+- **Decisión:** el pago de una compra es un egreso en `movimientos_caja` con `compra_id`, igual que un abono es un ingreso con `factura_id` (D-009). Un `CHECK` impide que un movimiento tenga ambas FK.
+- **Alternativas descartadas:** tabla `pagos_proveedores` (el mismo dinero quedaría en dos tablas); tabla `cuentas_por_pagar` (no hay compras a crédito).
+- **Consecuencias:** el cuadre de caja incluye los pagos a proveedores. Si en el futuro hay compras a crédito, el saldo de cada compra se calcula como total − egresos enlazados, sin tabla nueva.

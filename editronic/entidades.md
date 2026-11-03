@@ -2,7 +2,7 @@
 
 Ficha de cada entidad del modelo. Una entidad sin ficha completa no entra al diagrama (D-004).
 
-**Fase actual:** modelo completo con las respuestas del usuario. Todas las entidades están en estado **Propuesta** hasta la validación final. Los diagramas no se tocan hasta entonces.
+**Fase actual:** modelo completo; todas las preguntas están respondidas (P1 a P7, 2026-11-03). Las entidades quedan **listas para la validación final** del usuario. Los diagramas no se tocan hasta entonces.
 
 **Fuentes:** respuestas del usuario (prioridad máxima), 15 capturas y `bd.json`. Los hallazgos de la BD vieja están en `analisis-bd-vieja.md`.
 
@@ -37,7 +37,8 @@ No se crean, aunque exista una pantalla o una idea para ellas. Se dejan aquí pa
 | `cajas` | Hay una sola caja (respuesta C1) |
 | `documentos` (proforma + factura juntas) | Ciclos de vida distintos (D-013) |
 | `archivos_vinculos` (tabla + id genérico) | Sin FK reales; se usan tablas de vínculo por uso (D-024) |
-| `tokens_recuperacion` | No hay "olvidé mi contraseña" en el login; el administrador restablece contraseñas. Pendiente (pregunta P4) |
+| `tokens_recuperacion` | No hay "olvidé mi contraseña" por ahora; el administrador restablece las contraseñas (respuesta P4) |
+| `cuentas_por_pagar` | Las compras se pagan desde la caja; no hay compras a crédito por ahora (respuesta P1) |
 
 ---
 
@@ -135,16 +136,19 @@ No se crean, aunque exista una pantalla o una idea para ellas. Se dejan aquí pa
 | activo | BOOLEAN | | No | Si aparece en la lista |
 
 ## estados_orden
-- **Propósito:** Recibido, En diagnóstico, Esperando aprobación, En reparación, Reparado, Entregado (respuesta A2, en ese orden).
+- **Propósito:** Recibido, En diagnóstico, Esperando aprobación, No aprobado, En reparación, Reparado, Entregado (respuesta A2 más "No aprobado", respuesta P2).
 - **Justificación:** filtros e indicadores de órdenes, e historial de estados.
 - **Alternativas descartadas:** texto libre o `ENUM` (D-007).
-- **Valoración crítica:** si el cliente no aprueba el presupuesto en "Esperando aprobación", la lista no tiene un estado propio para eso. Hoy pasaría a "Entregado", cobrando solo el diagnóstico, con el motivo en la observación del historial (pregunta P2).
+- **Valoración crítica:**
+  - **"No aprobado"** (respuesta P2): el cliente rechaza el presupuesto y se cobra solo el diagnóstico. **No es estado final**, porque el equipo aún debe devolverse: después pasa a "Entregado". Esto ajusta la recomendación inicial, que lo proponía como final.
+  - **Garantía:** una orden que pasó por "No aprobado" no tiene garantía (no se reparó nada); al registrar ese estado, `ordenes_reparacion.dias_garantia` pasa a 0.
+  - Flujos posibles: Recibido → En diagnóstico → Esperando aprobación → En reparación → Reparado → Entregado; o bien Esperando aprobación → No aprobado → Entregado.
 
 | Columna | Tipo | Clave | Nulo | Descripción |
 |---|---|---|---|---|
 | id | IDENTITY | PK | No | Identificador |
 | nombre | VARCHAR(40) | UQ | No | Recibido … Entregado |
-| orden | SMALLINT | UQ | No | Posición en el flujo (1 a 6) |
+| orden | SMALLINT | UQ | No | Posición en listas (1 a 7) |
 | es_final | BOOLEAN | | No | Cierra la orden (Entregado) |
 | inicia_garantia | BOOLEAN | | No | La garantía empieza en este estado (Entregado) |
 
@@ -352,7 +356,7 @@ No se crean, aunque exista una pantalla o una idea para ellas. Se dejan aquí pa
 | observacion | VARCHAR(250) | | Sí | Motivo o nota |
 
 ## ordenes_archivos
-- **Estado:** Propuesta, por confirmar (pregunta P3)
+- **Estado:** Propuesta (confirmada por el usuario, respuesta P3)
 - **Propósito:** fotos del equipo al recibirlo.
 - **Justificación:** las cláusulas excluyen de la garantía los golpes, caídas y humedad. Una foto al recibir el equipo prueba su estado en caso de reclamo.
 - **Alternativas descartadas:** fotos en base64 en la orden (hallazgo 9).
@@ -374,7 +378,7 @@ No se crean, aunque exista una pantalla o una idea para ellas. Se dejan aquí pa
   - Si lleva stock o no lo decide la categoría (`categorias_producto.es_servicio`; respuesta C6).
   - El IVA viene de `tipos_iva` (respuesta B3).
   - `precio_compra` es el **costo actual**: se actualiza al registrar una compra y es editable (respuesta C4). Para calcular la ganancia se copia en cada línea vendida (D-020).
-  - `calidad_repuesto` (Original, OEM, Genérico) aplica solo a repuestos (D-022; pregunta P5).
+  - `calidad_repuesto` (Original, OEM, Genérico) aplica solo a repuestos (D-022, respuesta P5).
   - El stock se calcula desde `movimientos_inventario` (D-010); `stock_minimo` es un parámetro.
 
 | Columna | Tipo | Clave | Nulo | Descripción |
@@ -437,7 +441,10 @@ No se crean, aunque exista una pantalla o una idea para ellas. Se dejan aquí pa
 ## compras
 - **Propósito:** cada compra de mercadería a un proveedor.
 - **Justificación:** respuesta C3. Es el origen de las entradas de inventario y del costo (respuesta C4); el sistema viejo tiene costo 0 en todo (hallazgo 8).
-- **Valoración crítica:** los totales se calculan desde `detalle_compra`. ¿Se paga desde la caja? (pregunta P1).
+- **Valoración crítica:**
+  - Los totales se calculan desde `detalle_compra`.
+  - **El pago sale de la caja** (respuesta P1): uno o varios egresos en `movimientos_caja` con `compra_id`.
+  - No hay compras a crédito ni cuentas por pagar por ahora. Si aparecen, el saldo de una compra se calcularía igual que el de una factura (total − egresos enlazados), sin tabla nueva.
 
 | Columna | Tipo | Clave | Nulo | Descripción |
 |---|---|---|---|---|
@@ -564,11 +571,12 @@ No se crean, aunque exista una pantalla o una idea para ellas. Se dejan aquí pa
 | monto_contado_cierre | NUMERIC(12,2) | | Sí | Efectivo contado al cerrar |
 
 ## movimientos_caja
-- **Propósito:** entradas y salidas de dinero. Los ingresos con `factura_id` son los abonos (D-009).
+- **Propósito:** entradas y salidas de dinero. Los ingresos con `factura_id` son los abonos (D-009); los egresos con `compra_id` son los pagos a proveedores (D-026).
 - **Justificación:** todo cobro se hace con la caja abierta (respuesta C2).
 - **Valoración crítica:**
   - El saldo acumulado se calcula.
   - Al anular una factura con abonos, la devolución es un egreso enlazado a esa factura.
+  - Un `CHECK` impide que un movimiento tenga a la vez `factura_id` y `compra_id`.
 
 | Columna | Tipo | Clave | Nulo | Descripción |
 |---|---|---|---|---|
@@ -578,7 +586,8 @@ No se crean, aunque exista una pantalla o una idea para ellas. Se dejan aquí pa
 | metodo_pago_id | BIGINT | FK | No | Método |
 | monto | NUMERIC(12,2) | | No | Mayor que 0 |
 | concepto | VARCHAR(250) | | Sí | Nota libre |
-| factura_id | BIGINT | FK | Sí | Factura abonada |
+| factura_id | BIGINT | FK | Sí | Factura abonada (o devuelta) |
+| compra_id | BIGINT | FK | Sí | Compra pagada |
 | fecha_hora | TIMESTAMPTZ | | No | Cuándo |
 | usuario_id | BIGINT | FK | No | Quién |
 
@@ -680,7 +689,7 @@ No se crean, aunque exista una pantalla o una idea para ellas. Se dejan aquí pa
 | `categorias_producto`, `marcas`, `tipos_iva` | `productos` | FK homónimas |
 | `productos` | `precios_producto`, `detalle_factura`, `detalle_proforma`, `detalle_compra`, `movimientos_inventario` | `producto_id` |
 | `proveedores` | `compras` | `proveedor_id` |
-| `compras` | `detalle_compra`, `movimientos_inventario` | `compra_id` |
+| `compras` | `detalle_compra`, `movimientos_inventario`, `movimientos_caja` | `compra_id` |
 | `facturas` | `detalle_factura`, `movimientos_caja`, `movimientos_inventario`, `envios_correo` | `factura_id` |
 | `proformas` | `detalle_proforma` | `proforma_id` |
 | `sesiones_caja` | `movimientos_caja` | `sesion_caja_id` |

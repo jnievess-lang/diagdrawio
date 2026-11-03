@@ -52,7 +52,7 @@ Tienen **prioridad sobre la BD vieja**.
 | # | Respuesta | Dónde se aplica |
 |---|---|---|
 | A1 | Quien trae el equipo puede no ser a quien se factura | D-017 |
-| A2 | Estados: Recibido, En diagnóstico, Esperando aprobación, En reparación, Reparado, Entregado | `estados_orden` |
+| A2 | Estados: Recibido, En diagnóstico, Esperando aprobación, En reparación, Reparado, Entregado (+ "No aprobado", P2) | `estados_orden` |
 | A3 | Sí, historial de estados | `historial_estados_orden`, D-016 |
 | A4 | Sí, técnico asignado | `ordenes_reparacion.tecnico_id` |
 | A5 | Diagnóstico, costo, fecha y accesorios | `ordenes_reparacion` |
@@ -82,18 +82,18 @@ Tienen **prioridad sobre la BD vieja**.
 | E | Todas las decisiones D-002 a D-014 aceptadas | `decisiones.md` |
 | F | La migración la hace el usuario. Faltan tablas de archivos (no base64) y de autenticación. No usar JSON para líneas | D-024, D-025 |
 
-## Preguntas pendientes
-Solo surgieron de las respuestas anteriores. Cada una trae una recomendación.
-
-| # | Pregunta | Recomendación |
+## Preguntas finales (respondidas el 2026-11-03)
+| # | Respuesta | Dónde se aplica |
 |---|---|---|
-| P1 | ¿Las compras a proveedores se pagan desde la caja? ¿Hay compras a crédito (cuentas por pagar)? | Si se pagan en caja: `movimientos_caja.compra_id` en los egresos. Sin cuentas por pagar por ahora |
-| P2 | Si el cliente no aprueba el presupuesto en "Esperando aprobación", ¿a qué estado pasa? | Añadir "No aprobado" como estado final, que cobra solo el diagnóstico |
-| P3 | ¿Se guardan fotos del equipo al recibirlo (`ordenes_archivos`)? | Sí: protegen la garantía ante reclamos por golpes |
-| P4 | ¿Se necesita "olvidé mi contraseña" por correo? | No por ahora: el administrador restablece las contraseñas |
-| P5 | OEM: ¿confirmas `calidad_repuesto` con los valores Original, OEM y Genérico? | Sí (D-022) |
-| P6 | Archivos: ¿aceptas tablas de vínculo por uso en lugar de una tabla genérica con el nombre de la tabla (D-024)? | Sí |
-| P7 | Estado actual de la orden calculado desde el historial, sin columna (D-016) | Sí |
+| P1 | Las compras se pagan con egreso de caja; sin cuentas por pagar por ahora | D-026, `movimientos_caja.compra_id` |
+| P2 | Se añade el estado "No aprobado" | `estados_orden` (no final: luego pasa a Entregado) |
+| P3 | Sí, fotos del equipo al recibirlo | `ordenes_archivos` |
+| P4 | Sin "olvidé mi contraseña" por ahora | `tokens_recuperacion` descartada |
+| P5 | OEM como `calidad_repuesto` (Original, OEM, Genérico) | D-022 |
+| P6 | Archivos con tablas de vínculo por uso | D-024 |
+| P7 | Estado actual calculado desde el historial | D-016 |
+
+**No quedan preguntas abiertas.** Siguiente paso: validación final de `entidades.md`.
 
 ## Glosario
 | Término | Significado |

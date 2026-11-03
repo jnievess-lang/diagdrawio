@@ -8,11 +8,20 @@ Bitácora cronológica: cada cambio, en orden, con su motivo. La entrada más re
 - **Diagrama Producción:** vacío.
 - **Entidades propuestas (22):** `clientes`, `equipos`, `tipos_equipo`, `ordenes_reparacion`, `estados_orden`, `sesiones_caja`, `movimientos_caja`, `metodos_pago`, `usuarios`, `roles`, `facturas`, `detalle_factura`, `proformas`, `detalle_proforma`, `productos`, `categorias_producto`, `marcas`, `tarifas`, `precios_producto`, `movimientos_inventario`, `envios_correo`, `configuracion`.
 - **Pendiente:**
-  - El usuario responde las preguntas P1 a P7 de `proyecto.md`.
-  - Validación final de `entidades.md` (35 tablas).
+  - Validación final de `entidades.md` (35 tablas). No quedan preguntas abiertas.
   - Solo después de validar: empezar `ERD-Editronic-Dev.drawio`.
 
 ## Bitácora
+
+### 2026-11-03 — Respuestas finales (P1 a P7)
+- **Qué:**
+  - `movimientos_caja` + `compra_id` para pagar compras desde la caja (D-026).
+  - `estados_orden` + "No aprobado": no es final, porque el equipo se devuelve después (Entregado), y deja la garantía en 0.
+  - `ordenes_archivos` confirmada.
+  - `tokens_recuperacion` y `cuentas_por_pagar` descartadas.
+  - D-016, D-022 y D-024 aceptadas.
+- **Ajuste a una recomendación:** "No aprobado" se había propuesto como estado final; se corrige porque el equipo todavía debe entregarse al cliente.
+- **Diagramas:** sin cambios; esperan la validación final.
 
 ### 2026-11-03 — Respuestas del usuario y análisis de la BD vieja
 - **Qué:**
