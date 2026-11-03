@@ -8,11 +8,31 @@ Bitácora cronológica: cada cambio, en orden, con su motivo. La entrada más re
 - **Diagrama Producción:** vacío.
 - **Entidades propuestas (22):** `clientes`, `equipos`, `tipos_equipo`, `ordenes_reparacion`, `estados_orden`, `sesiones_caja`, `movimientos_caja`, `metodos_pago`, `usuarios`, `roles`, `facturas`, `detalle_factura`, `proformas`, `detalle_proforma`, `productos`, `categorias_producto`, `marcas`, `tarifas`, `precios_producto`, `movimientos_inventario`, `envios_correo`, `configuracion`.
 - **Pendiente:**
-  - El usuario responde las dudas consolidadas de `proyecto.md` (grupos A a F).
-  - Con las respuestas: ajustar `entidades.md` y `decisiones.md`, y pedir la validación final.
+  - El usuario responde las preguntas P1 a P7 de `proyecto.md`.
+  - Validación final de `entidades.md` (35 tablas).
   - Solo después de validar: empezar `ERD-Editronic-Dev.drawio`.
 
 ## Bitácora
+
+### 2026-11-03 — Respuestas del usuario y análisis de la BD vieja
+- **Qué:**
+  - Se registraron las respuestas A1 a F en `proyecto.md`.
+  - Se creó `analisis-bd-vieja.md`, con la estructura de `bd.json` y 32 hallazgos.
+  - Se reescribió `entidades.md`: de 22 a 35 tablas.
+  - Se aceptaron D-002 a D-014 y se añadieron D-015 a D-025.
+  - `CLAUDE.md` tiene nuevas reglas sobre la BD vieja y lo prohibido en el modelo.
+- **Tablas nuevas (13):** `tipos_identificacion`, `tipos_iva`, `permisos`, `roles_permisos`, `sesiones`, `refresh_tokens`, `proveedores`, `historial_estados_orden`, `ordenes_archivos`, `productos_archivos`, `compras`, `detalle_compra`, `archivos`; además `estados_orden` cambia a los 6 estados del usuario.
+- **Cambios en tablas existentes:**
+  - `ordenes_reparacion`: + técnico, diagnóstico, costo estimado, fecha estimada, accesorios, garantía, orden de garantía, PDF; − estado (pasa al historial).
+  - `productos`: − `es_servicio` (pasa a la categoría), + `tipo_iva_id`, + `calidad_repuesto`.
+  - `detalle_factura`: + `descuento`, + `costo_unitario`.
+  - `detalle_proforma`: + `descuento`.
+  - `clientes`: + tipo de identificación (catálogo), + tarifa por defecto.
+  - `usuarios`: + intentos fallidos y bloqueo.
+  - `configuracion`: + IVA predeterminado, + tope de descuento, logo como archivo.
+- **Descartadas:** `tokens_recuperacion` (pendiente P4) y `archivos_vinculos` genérica (D-024).
+- **Privacidad:** `bd.json` no se sube al repositorio (datos personales).
+- **Diagramas:** sin cambios.
 
 ### 2026-11-02 — Cierre del levantamiento y dudas consolidadas
 - **Qué:** última captura (Login). Se cerró el levantamiento: no hay más capturas. Se reunieron todas las dudas en `proyecto.md`, agrupadas (A servicio técnico, B ventas, C caja e inventario, D clientes y usuarios, E decisiones, F migración), cada una con una recomendación.

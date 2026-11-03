@@ -1,541 +1,398 @@
 # Entidades de Editronic
 
-Ficha de cada entidad del modelo. Una entidad sin ficha completa no entra al diagrama (ver D-004).
+Ficha de cada entidad del modelo. Una entidad sin ficha completa no entra al diagrama (D-004).
 
-**Fase actual:** levantamiento del sistema viejo a partir de capturas de pantalla. Todas las entidades están en estado **Propuesta** hasta que el usuario valide este archivo. Los diagramas no se tocan hasta entonces.
+**Fase actual:** modelo completo con las respuestas del usuario. Todas las entidades están en estado **Propuesta** hasta la validación final. Los diagramas no se tocan hasta entonces.
 
-## Fuentes revisadas
-| # | Captura | Módulo | Entidades que aporta |
-|---|---|---|---|
-| 1 | Caja (saldo, tarjetas resumen, registrar movimiento) | Caja | `sesiones_caja`, `movimientos_caja`, `metodos_pago`, `usuarios` |
-| 2 | Movimientos de caja (tabla) | Caja | `movimientos_caja` |
-| 3 | Listado de clientes | Clientes | `clientes` |
-| 4 | Registrar equipo (formulario) | Equipos | `equipos`, `ordenes_reparacion`, `tipos_equipo`, `estados_orden` |
-| 5 | Órdenes ingresadas (tabla) | Equipos | `ordenes_reparacion` |
-| 6 | Nueva venta de productos | Ventas | `facturas`, `detalle_factura`, `tarifas` |
-| 7 | Historial de facturas | Ventas | `facturas`, `movimientos_caja` (abonos), `envios_correo` |
-| 8 | Ingresar producto y productos registrados | Inventario: productos | `productos`, `categorias_producto`, `marcas`, `precios_producto` |
-| 9 | Inventario actual | Inventario: inventario | `productos`, `movimientos_inventario` |
-| 10 | Inventario de equipos / máquinas | Inventario de equipos | `ordenes_reparacion`, `equipos`, `estados_orden` (no aporta tabla nueva) |
-| 11 | Nueva proforma y proformas guardadas | Proformas | `proformas`, `detalle_proforma` |
-| 12 | Cuentas por cobrar | Cuentas por cobrar | `facturas`, `movimientos_caja` (confirma D-009; no aporta tabla nueva) |
-| 13 | Empleados del sistema, cuenta del administrador y usuarios registrados | Empleados | `usuarios`, `roles` |
-| 14 | Datos de la empresa y personalización | Configuración | `configuracion` |
-| 15 | Inicio de sesión | Login | `usuarios` (confirma usuario y correo únicos) |
+**Fuentes:** respuestas del usuario (prioridad máxima), 15 capturas y `bd.json`. Los hallazgos de la BD vieja están en `analisis-bd-vieja.md`.
 
-## Resumen
+**Convenciones de las tablas de columnas:**
+- `IDENTITY` = `BIGINT GENERATED ALWAYS AS IDENTITY`.
+- **Clave:** PK, FK, UQ (único).
+- **Nulo:** Sí o No.
 
-| Entidad | Origen | Estado | En Dev | En Producción |
-|---|---|---|---|---|
-| `clientes` | Observada | Propuesta | No | No |
-| `equipos` | Observada (separada de la orden, ver D-006) | Propuesta | No | No |
-| `tipos_equipo` | Observada (lista desplegable) | Propuesta | No | No |
-| `ordenes_reparacion` | Observada | Propuesta | No | No |
-| `estados_orden` | Observada (lista desplegable) | Propuesta | No | No |
-| `sesiones_caja` | Observada | Propuesta | No | No |
-| `movimientos_caja` | Observada | Propuesta | No | No |
-| `metodos_pago` | Observada (lista desplegable) | Propuesta | No | No |
-| `usuarios` | Observada (pantalla Empleados) | Propuesta | No | No |
-| `facturas` | Observada | Propuesta | No | No |
-| `detalle_factura` | Observada (detalle de venta) | Propuesta | No | No |
-| `productos` | Observada | Propuesta | No | No |
-| `categorias_producto` | Observada (texto libre en el sistema viejo) | Propuesta | No | No |
-| `marcas` | Observada (texto libre con variantes) | Propuesta | No | No |
-| `tarifas` | Observada (Público, Técnico, Mayorista) | Propuesta | No | No |
-| `precios_producto` | Derivada de normalizar las tres columnas de precio | Propuesta, por validar | No | No |
-| `movimientos_inventario` | Nueva: no existe en el sistema viejo | Propuesta, por validar | No | No |
-| `envios_correo` | Observada ("PDF enviado · correo · fecha") | Propuesta | No | No |
-| `roles` | Observada (Administrador, Técnico, Secretario/a) | Propuesta | No | No |
-| `proformas` | Observada | Propuesta | No | No |
-| `detalle_proforma` | Observada (detalle de proforma) | Propuesta | No | No |
-| `configuracion` | Observada (datos de la empresa) | Propuesta | No | No |
+## Resumen (35 tablas)
 
-**Tablas que no hacen falta** (aunque haya módulo o pantalla):
-- **Inventario de equipos:** es una consulta sobre `ordenes_reparacion` + `equipos` + `clientes`; sus totales (pendientes, reparados, entregados) se cuentan por estado.
-- **Cuentas por cobrar:** son las facturas con saldo mayor que 0; los abonos son movimientos de caja enlazados a la factura (D-009). La captura 12 lo confirma: la pantalla lista facturas (total, abonado, saldo) y sus indicadores (total pendiente, facturas pendientes, clientes con saldo, abonos de hoy) se calculan.
-- **Empleados:** son los registros de `usuarios` (D-014).
-- **Perfil:** probablemente edita el propio registro de `usuarios` (pendiente de captura).
+| Grupo | Tablas |
+|---|---|
+| Catálogos | `tipos_identificacion`, `tipos_iva`, `metodos_pago`, `marcas`, `categorias_producto`, `tarifas`, `tipos_equipo`, `estados_orden` |
+| Seguridad | `usuarios`, `roles`, `permisos`, `roles_permisos`, `sesiones`, `refresh_tokens` |
+| Clientes y proveedores | `clientes`, `proveedores` |
+| Servicio técnico | `equipos`, `ordenes_reparacion`, `historial_estados_orden`, `ordenes_archivos` |
+| Productos e inventario | `productos`, `precios_producto`, `productos_archivos`, `movimientos_inventario`, `compras`, `detalle_compra` |
+| Ventas | `proformas`, `detalle_proforma`, `facturas`, `detalle_factura` |
+| Caja | `sesiones_caja`, `movimientos_caja` |
+| Archivos y correo | `archivos`, `envios_correo` |
+| Configuración | `configuracion` |
 
-**Origen:** *Observada* = aparece en pantalla con sus campos. *Referenciada* = se menciona, pero faltan sus campos.
+## Entidades descartadas
+No se crean, aunque exista una pantalla o una idea para ellas. Se dejan aquí para no volver a discutirlas.
 
-## Hallazgos del sistema viejo (valoración crítica)
-1. **Equipo y orden mezclados.** El formulario "Registrar equipo" crea a la vez el equipo y la orden (`OR-000029`), y la tabla de órdenes tiene un botón "Eliminar equipo". Si el mismo equipo vuelve a reparación, se duplican marca, modelo y serie. Propuesta: separarlos (D-006).
-2. **Referencias guardadas como texto.** El concepto de un movimiento es `Reparación OR-000026 · FAC-000016 · Transferencia`: la orden, la factura y el método van dentro de un texto. No se puede consultar ni garantizar que existan. Propuesta: claves foráneas reales; el concepto queda solo para notas libres.
-3. **Totales calculados.** "Saldo total", "Efectivo cobrado", "Transferencias", "Tarjetas", "Egresos totales" y la columna "Saldo" se calculan a partir de los movimientos. Guardarlos como columnas los desincroniza. Propuesta: calcularlos con consultas o vistas, no almacenarlos.
-4. **Borrado físico.** Clientes y equipos tienen botón "Eliminar". Si un cliente tiene facturas, borrarlo rompe el historial fiscal. Propuesta: borrado lógico (`activo = false`).
-5. **Listas fijas.** Tipo de equipo, estado de la orden, tipo y método de movimiento son listas desplegables. Propuesta: tablas catálogo (D-007) para poder añadir valores sin cambiar la estructura.
-6. **Marcas y categorías como texto libre.** En inventario aparecen `hp` y `Hp`, `xiomi` (mal escrito), `Laptop` y `repuesto`. Propuesta: catálogos `marcas` (compartido por productos y equipos) y `categorias_producto`.
-7. **Servicios con stock.** "Mantenimiento preventivo de laptops" es un producto de categoría *servicio* con stock 4. Un servicio no tiene existencias. Propuesta: `productos.es_servicio`; los servicios no llevan control de stock.
-8. **Datos de modelo y serie mezclados.** En equipos aparece el modelo `HP S/N` (la serie dentro del modelo) y la marca escrita junto al modelo. Al migrar habrá que limpiar estos datos.
-9. **"Crédito" como forma de pago.** En facturas, la columna "Pago" mezcla el método (Efectivo, Transferencia) con la condición (Crédito). Son cosas distintas: una factura a crédito se paga luego con abonos en efectivo o transferencia (D-009).
-10. **Abonado, saldo y estado guardados.** "Abonado", "Saldo" y "Pagado/Pendiente" se calculan a partir de los abonos (D-008).
-11. **Facturas que se eliminan.** El historial tiene botón "Eliminar". Una factura emitida no se borra: se anula y queda registrada, sobre todo si tiene validez ante el SRI.
-12. **Precio de compra en $0,00.** Todos los productos vistos tienen precio de compra 0, así que "Valor de compra" del inventario es $0. El campo existe pero no se llena; sin él no se puede calcular la ganancia.
-13. **Stock editado a mano.** El stock se escribe en el formulario del producto, sin registro de por qué cambió. Propuesta: `movimientos_inventario` (D-010).
-14. **Administrador separado.** Empleados tiene un bloque "Cuenta del administrador" distinto de "Usuarios registrados", y el administrador no aparece en la lista. Propuesta: un solo `usuarios` con rol Administrador (D-014).
-15. **RUC vacío y razón social incorrecta.** En Configuración el RUC está vacío y la razón social es "Soporte técnico", que es una actividad, no un nombre legal.
-16. **Botón "Restablecer datos de prueba".** Si existe en producción puede borrar datos reales. No afecta al modelo, pero conviene eliminarlo del sistema nuevo.
-17. **Credenciales de correo.** El envío por Gmail API necesita credenciales; deben vivir en la configuración del servidor, nunca en la base de datos ni en el código.
-18. **Vigencia de proformas no visible.** El formulario pide la vigencia, pero la lista muestra "–".
+| Entidad | Motivo |
+|---|---|
+| `empleados` | Son los registros de `usuarios` (D-014) |
+| `cuentas_por_cobrar` | Son las facturas con saldo (D-009) |
+| `abonos` | Son los `movimientos_caja` con `factura_id` (D-009) |
+| `inventario_equipos` | Es una consulta sobre órdenes y equipos |
+| `cajas` | Hay una sola caja (respuesta C1) |
+| `documentos` (proforma + factura juntas) | Ciclos de vida distintos (D-013) |
+| `archivos_vinculos` (tabla + id genérico) | Sin FK reales; se usan tablas de vínculo por uso (D-024) |
+| `tokens_recuperacion` | No hay "olvidé mi contraseña" en el login; el administrador restablece contraseñas. Pendiente (pregunta P4) |
 
 ---
 
-## clientes
-- **Estado:** Propuesta
-- **Origen:** captura 3 (listado de clientes, 37 registros).
-- **Propósito:** personas o empresas que compran productos o dejan equipos a reparar.
-- **Justificación:** las facturas, órdenes y cuentas por cobrar necesitan identificar al cliente. Sin esta tabla, sus datos se repetirían en cada documento.
-- **Alternativas descartadas:** guardar nombre y cédula directamente en la factura o la orden (datos duplicados y sin historial por cliente).
-- **Valoración crítica:**
-  - El sistema viejo usa un solo campo "Nombre" con apellidos y nombres en mayúsculas. Para facturar basta un campo `razon_social`, que sirve para personas y empresas. Separar nombres y apellidos solo merece la pena si se van a buscar u ordenar por apellido.
-  - "Cédula/RUC" comparte columna. Hace falta saber qué tipo de identificación es (cédula, RUC, pasaporte, consumidor final), porque la factura lo exige. Propuesta: `tipo_identificacion`.
-  - `identificacion` debe ser única.
+# Catálogos
+
+## tipos_identificacion
+- **Propósito:** tipos de documento de clientes y proveedores: Cédula, RUC, Pasaporte, Consumidor final.
+- **Justificación:** el sistema viejo mezcla cédula y RUC en un campo, y la venta a consumidor final exige identificarlo (respuesta D2).
+- **Alternativas descartadas:** `VARCHAR` con texto libre (repite el problema de las categorías).
+- **Valoración crítica:** `codigo_sri` queda nulo mientras las facturas sean internas; si se pasa al SRI, ya está la columna (respuesta B1).
 
 | Columna | Tipo | Clave | Nulo | Descripción |
 |---|---|---|---|---|
-| id | BIGINT IDENTITY | PK | No | Identificador |
-| tipo_identificacion | VARCHAR(20) | | No | Cédula, RUC, pasaporte, consumidor final |
-| identificacion | VARCHAR(20) | UQ | No | Número de cédula o RUC |
-| razon_social | VARCHAR(200) | | No | Nombre completo o razón social |
-| telefono | VARCHAR(20) | | Sí | Teléfono de contacto |
-| correo | VARCHAR(150) | | Sí | Correo para enviar facturas y órdenes |
-| direccion | VARCHAR(250) | | Sí | Dirección |
-| activo | BOOLEAN | | No | Borrado lógico |
-| fecha_creacion | TIMESTAMPTZ | | No | Fecha de registro |
-
-**Relaciones:**
-- `clientes` 1 → N `equipos`.
-- `clientes` 1 → N `ordenes_reparacion`.
-- `clientes` 1 → N `facturas`.
-
-**Historial:**
-- 2026-11-02: propuesta a partir de la captura del listado de clientes.
-
----
-
-## equipos
-- **Estado:** Propuesta
-- **Origen:** captura 4 (formulario "Registrar equipo").
-- **Propósito:** cada aparato físico de un cliente (computadora, impresora, consola…).
-- **Justificación:** un mismo equipo puede volver varias veces a reparación. Guardarlo una vez permite ver su historial de órdenes y no repetir marca, modelo y serie.
-- **Alternativas descartadas:** guardar marca, modelo y serie en la orden, como hace el sistema viejo (ver D-006).
-- **Valoración crítica:**
-  - La serie no siempre existe (mandos, equipos sin etiqueta), así que puede ser nula y no puede ser clave única obligatoria.
-  - La marca es texto libre en el sistema viejo (`HP`, `hp`, `lenovo`, `sony`…). Usa el catálogo `marcas`, compartido con productos (hallazgo 6).
-
-| Columna | Tipo | Clave | Nulo | Descripción |
-|---|---|---|---|---|
-| id | BIGINT IDENTITY | PK | No | Identificador |
-| cliente_id | BIGINT | FK | No | Dueño del equipo |
-| tipo_equipo_id | BIGINT | FK | No | Computadora, laptop, PlayStation… |
-| marca_id | BIGINT | FK | Sí | Marca (catálogo `marcas`) |
-| modelo | VARCHAR(120) | | Sí | Modelo |
-| serie | VARCHAR(80) | | Sí | Número de serie |
-| fecha_creacion | TIMESTAMPTZ | | No | Fecha de registro |
-
-**Relaciones:**
-- `clientes` 1 → N `equipos` mediante `cliente_id`.
-- `tipos_equipo` 1 → N `equipos` mediante `tipo_equipo_id`.
-- `marcas` 1 → N `equipos` mediante `marca_id`.
-- `equipos` 1 → N `ordenes_reparacion`.
-
-**Historial:**
-- 2026-11-02: propuesta, separada de la orden de reparación.
-
----
-
-## tipos_equipo
-- **Estado:** Propuesta
-- **Origen:** capturas 4 y 10 (valores vistos: Computadora, Laptop, PlayStation).
-- **Propósito:** catálogo de tipos de equipo que se reparan.
-- **Justificación:** permite añadir tipos nuevos sin cambiar la estructura y filtrar reportes por tipo.
-- **Alternativas descartadas:** `ENUM` de PostgreSQL (añadir un valor exige cambiar el esquema; ver D-007).
-- **Valoración crítica:** tabla pequeña y estable; bajo coste.
-
-| Columna | Tipo | Clave | Nulo | Descripción |
-|---|---|---|---|---|
-| id | BIGINT IDENTITY | PK | No | Identificador |
-| nombre | VARCHAR(60) | UQ | No | Computadora, impresora, mando, consola… |
+| id | IDENTITY | PK | No | Identificador |
+| nombre | VARCHAR(30) | UQ | No | Cédula, RUC, Pasaporte, Consumidor final |
+| codigo_sri | VARCHAR(2) | | Sí | Código oficial, para el futuro |
 | activo | BOOLEAN | | No | Si aparece en la lista |
 
-**Historial:**
-- 2026-11-02: propuesta.
-
----
-
-## ordenes_reparacion
-- **Estado:** Propuesta
-- **Origen:** capturas 4 y 5 (formulario y tabla "Órdenes ingresadas").
-- **Propósito:** cada ingreso de un equipo al servicio técnico.
-- **Justificación:** es el documento central del servicio técnico: qué se recibió, qué falla tiene, en qué estado está y qué factura lo cobró.
-- **Alternativas descartadas:** guardarlo todo en `equipos` (se pierde el historial de reparaciones del mismo equipo).
-- **Valoración crítica:**
-  - `cliente_id` se repite respecto a `equipos.cliente_id`. Se mantiene porque el cliente que trae el equipo puede no ser el dueño registrado, y la orden debe conservar a quién se entregó. **Confirmar con el usuario**; si no aplica, se elimina.
-  - La relación con la factura se confirma cuando lleguen las capturas de facturación.
-  - Falta saber si se registra el técnico asignado, el diagnóstico, el costo estimado y la fecha de entrega.
+## tipos_iva
+- **Propósito:** tarifas de IVA aplicables a los productos (0 %, 15 %…).
+- **Justificación:** hay productos con IVA 0 % (respuesta B3), y la tarifa general ya cambió en Ecuador; con un catálogo, un cambio de IVA es un registro nuevo.
+- **Alternativas descartadas:** `porcentaje_iva` numérico en cada producto (un cambio de tarifa obliga a editar todos los productos).
+- **Valoración crítica:** el detalle de factura y de proforma sigue copiando el porcentaje al vender, para que las facturas antiguas no cambien.
 
 | Columna | Tipo | Clave | Nulo | Descripción |
 |---|---|---|---|---|
-| id | BIGINT IDENTITY | PK | No | Identificador |
-| numero | VARCHAR(20) | UQ | No | Número visible, p. ej. `OR-000029` |
-| equipo_id | BIGINT | FK | No | Equipo recibido |
-| cliente_id | BIGINT | FK | No | Cliente que deja el equipo (por confirmar) |
-| estado_orden_id | BIGINT | FK | No | Estado actual |
-| dano_reportado | TEXT | | No | Falla que indica el cliente |
-| observaciones | TEXT | | Sí | Estado físico, accesorios, notas |
-| fecha_ingreso | TIMESTAMPTZ | | No | Fecha y hora de recepción |
-| usuario_id | BIGINT | FK | No | Usuario que registró la orden |
-
-**Relaciones:**
-- `equipos` 1 → N `ordenes_reparacion` mediante `equipo_id`.
-- `clientes` 1 → N `ordenes_reparacion` mediante `cliente_id`.
-- `estados_orden` 1 → N `ordenes_reparacion` mediante `estado_orden_id`.
-- `usuarios` 1 → N `ordenes_reparacion` mediante `usuario_id`.
-
-**Historial:**
-- 2026-11-02: propuesta.
-
----
-
-## estados_orden
-- **Estado:** Propuesta
-- **Origen:** capturas 4, 5 y 10 (valores vistos: Recibido, Entregado; los indicadores mencionan "Pendientes: sin finalizar" y "Reparados: listos / reparados").
-- **Propósito:** catálogo de estados de una orden de reparación.
-- **Justificación:** el filtro "Estado" y los indicadores de Inventario de equipos agrupan las órdenes por estado.
-- **Alternativas descartadas:** texto libre (variantes como "recibido" / "Recibido") o `ENUM` (ver D-007).
-- **Valoración crítica:**
-  - Estados deducidos: Recibido → (¿En reparación?) → Reparado/Listo → Entregado. Falta confirmar la lista completa y si existe "Sin reparación" o "Devuelto sin arreglar".
-  - Los indicadores agrupan varios estados ("Pendientes" = sin finalizar). Propuesta: columna `es_final` para saber qué estados cierran la orden.
-  - Falta decidir si se guarda el historial de cambios de estado (otra tabla) o solo el estado actual.
-
-| Columna | Tipo | Clave | Nulo | Descripción |
-|---|---|---|---|---|
-| id | BIGINT IDENTITY | PK | No | Identificador |
-| nombre | VARCHAR(40) | UQ | No | Recibido, Reparado, Entregado… |
-| orden | SMALLINT | | No | Posición en el flujo |
-| es_final | BOOLEAN | | No | Si cierra la orden (p. ej. Entregado) |
-
-**Historial:**
-- 2026-11-02: propuesta.
-
----
-
-## sesiones_caja
-- **Estado:** Propuesta
-- **Origen:** captura 1 ("Caja abierta", fecha de apertura, "Base inicial").
-- **Propósito:** cada apertura y cierre de caja de un turno o día.
-- **Justificación:** el sistema muestra "Caja abierta" con una base inicial y una fecha. Para cuadrar la caja hay que saber qué movimientos pertenecen a qué apertura y con qué base empezó.
-- **Alternativas descartadas:** movimientos sin sesión (no se puede cuadrar por turno ni saber quién abrió y cerró).
-- **Valoración crítica:**
-  - Los totales de la pantalla no se guardan: se calculan sumando `movimientos_caja` (hallazgo 3).
-  - Al cerrar sí conviene guardar el monto contado físicamente, para compararlo con el calculado y ver si falta o sobra dinero.
-  - Falta saber si hay una caja o varias (varios puntos de cobro). Si hay varias, se necesita una tabla `cajas`.
-
-| Columna | Tipo | Clave | Nulo | Descripción |
-|---|---|---|---|---|
-| id | BIGINT IDENTITY | PK | No | Identificador |
-| usuario_apertura_id | BIGINT | FK | No | Quién abrió la caja |
-| fecha_apertura | TIMESTAMPTZ | | No | Fecha y hora de apertura |
-| base_inicial | NUMERIC(12,2) | | No | Efectivo con el que se abre |
-| usuario_cierre_id | BIGINT | FK | Sí | Quién la cerró |
-| fecha_cierre | TIMESTAMPTZ | | Sí | Nula mientras esté abierta |
-| monto_contado_cierre | NUMERIC(12,2) | | Sí | Efectivo contado al cerrar |
-
-**Relaciones:**
-- `usuarios` 1 → N `sesiones_caja` (apertura y cierre).
-- `sesiones_caja` 1 → N `movimientos_caja`.
-
-**Historial:**
-- 2026-11-02: propuesta.
-
----
-
-## movimientos_caja
-- **Estado:** Propuesta
-- **Origen:** capturas 1 y 2 (formulario "Registrar movimiento" y tabla "Movimientos de caja").
-- **Propósito:** cada entrada o salida de dinero de la caja.
-- **Justificación:** es el registro de dinero real. Sin él no hay cuadre de caja ni reporte por método de pago.
-- **Alternativas descartadas:** calcular la caja solo desde las facturas (no cubre egresos ni aportes manuales, como "aporte adicional o devolución").
-- **Valoración crítica:**
-  - La columna "Saldo" no se guarda: es la suma acumulada y se calcula al consultar (hallazgo 3).
-  - Cuando el movimiento viene de una factura, se enlaza con `factura_id`, no con texto (hallazgo 2). Los movimientos manuales lo dejan nulo.
-  - Un movimiento con `factura_id` es un **abono** a esa factura: el pago total de una venta al contado es un único abono; una venta a crédito recibe varios. Así el mismo dinero no se registra en dos tablas (D-009).
-  - Consecuencia de D-009: solo se puede cobrar con una caja abierta. Hay que confirmar que en el local siempre es así, también para transferencias.
-  - `tipo` (ingreso o egreso) tiene solo dos valores fijos. Una restricción `CHECK` basta; no hace falta una tabla catálogo.
-  - `monto` siempre es positivo; el signo lo da `tipo`.
-
-| Columna | Tipo | Clave | Nulo | Descripción |
-|---|---|---|---|---|
-| id | BIGINT IDENTITY | PK | No | Identificador |
-| sesion_caja_id | BIGINT | FK | No | Apertura de caja a la que pertenece |
-| tipo | VARCHAR(10) | | No | `ingreso` o `egreso` (CHECK) |
-| metodo_pago_id | BIGINT | FK | No | Efectivo, transferencia, tarjeta |
-| monto | NUMERIC(12,2) | | No | Importe, mayor que 0 |
-| concepto | VARCHAR(250) | | Sí | Nota libre |
-| factura_id | BIGINT | FK | Sí | Factura que originó el movimiento |
-| fecha_hora | TIMESTAMPTZ | | No | Fecha y hora |
-| usuario_id | BIGINT | FK | No | Quién lo registró |
-
-**Relaciones:**
-- `sesiones_caja` 1 → N `movimientos_caja` mediante `sesion_caja_id`.
-- `metodos_pago` 1 → N `movimientos_caja` mediante `metodo_pago_id`.
-- `facturas` 1 → N `movimientos_caja` mediante `factura_id` (opcional; son los abonos).
-- `usuarios` 1 → N `movimientos_caja` mediante `usuario_id`.
-
-**Historial:**
-- 2026-11-02: propuesta.
-
----
+| id | IDENTITY | PK | No | Identificador |
+| nombre | VARCHAR(30) | UQ | No | IVA 0 %, IVA 15 % |
+| porcentaje | NUMERIC(5,2) | | No | 0.00, 15.00 |
+| codigo_sri | VARCHAR(4) | | Sí | Código oficial, para el futuro |
+| activo | BOOLEAN | | No | Si se puede asignar |
 
 ## metodos_pago
-- **Estado:** Propuesta
-- **Origen:** capturas 1, 2, 6 y 7 (Efectivo, Transferencia, Tarjetas). "Crédito" no es un método de pago (hallazgo 9).
-- **Propósito:** catálogo de formas de pago.
-- **Justificación:** se usará en caja, facturas y cuentas por cobrar; los reportes agrupan por método.
-- **Alternativas descartadas:** texto libre o `ENUM` (ver D-007).
-- **Valoración crítica:** si la facturación electrónica exige códigos oficiales de forma de pago, se añadirá una columna `codigo`.
+- **Propósito:** Efectivo, Transferencia, Tarjeta.
+- **Justificación:** caja y abonos se agrupan por método. "Crédito" no es un método: es una factura con saldo (D-009).
+- **Alternativas descartadas:** texto libre o `ENUM` (D-007).
 
 | Columna | Tipo | Clave | Nulo | Descripción |
 |---|---|---|---|---|
-| id | BIGINT IDENTITY | PK | No | Identificador |
-| nombre | VARCHAR(40) | UQ | No | Efectivo, transferencia, tarjeta |
+| id | IDENTITY | PK | No | Identificador |
+| nombre | VARCHAR(40) | UQ | No | Efectivo, Transferencia, Tarjeta |
 | activo | BOOLEAN | | No | Si aparece en la lista |
-
-**Historial:**
-- 2026-11-02: propuesta.
-
----
-
-## usuarios
-- **Estado:** Propuesta
-- **Origen:** capturas 1 y 13 (cabecera "edison · Administrador"; pantalla Empleados: "Empleados del sistema", "Cuenta del administrador" y "Usuarios registrados").
-- **Propósito:** empleados del local que inician sesión en el sistema.
-- **Justificación:** caja, órdenes, facturas e inventario registran quién hizo cada operación.
-- **Alternativas descartadas:**
-  - Tablas separadas `empleados` y `usuarios`: en el sistema viejo todo empleado se crea con usuario y contraseña, así que serían la misma lista (D-014).
-  - Guardar al administrador aparte, como sugiere el bloque "Cuenta del administrador" (hallazgo 14): el administrador es un usuario más con rol Administrador.
-- **Valoración crítica:**
-  - "Desactivar" en lugar de eliminar ya existe en el sistema viejo: se mantiene como `activo`.
-  - La contraseña nunca se guarda en claro, solo su hash. La regla "mínimo 8 caracteres" se valida en la aplicación.
-  - El correo es opcional para empleados, pero el administrador tiene "correo principal". Se deja opcional y único cuando exista.
-  - Si en el futuro hay técnicos sin acceso al sistema, se revisa D-014.
-
-| Columna | Tipo | Clave | Nulo | Descripción |
-|---|---|---|---|---|
-| id | BIGINT IDENTITY | PK | No | Identificador |
-| nombre_completo | VARCHAR(150) | | No | Nombre del empleado |
-| nombre_usuario | VARCHAR(50) | UQ | No | Usuario de acceso (p. ej. `edison`, `jimmy.programado`) |
-| correo | VARCHAR(150) | UQ | Sí | Correo del empleado |
-| hash_contrasena | VARCHAR(255) | | No | Contraseña cifrada |
-| rol_id | BIGINT | FK | No | Administrador, Técnico, Secretario/a |
-| activo | BOOLEAN | | No | Si puede iniciar sesión |
-| fecha_creacion | TIMESTAMPTZ | | No | Fecha de alta |
-
-**Relaciones:**
-- `roles` 1 → N `usuarios` mediante `rol_id`.
-- `usuarios` 1 → N en caja, órdenes, facturas, proformas, inventario y envíos de correo (quién registró cada operación).
-
-**Historial:**
-- 2026-11-02: propuesta incompleta.
-- 2026-11-02: completada con la pantalla Empleados; se unifica con empleados (D-014).
-
----
-
-## roles
-- **Estado:** Propuesta
-- **Origen:** captura 13 (Administrador, Técnico, Secretario/a).
-- **Propósito:** catálogo de roles de los usuarios.
-- **Justificación:** el rol decide qué puede hacer cada usuario; se elige de una lista.
-- **Alternativas descartadas:** `ENUM` o texto (D-007).
-- **Valoración crítica:** no se ve en ninguna pantalla qué puede hacer cada rol. Si los permisos se configuran desde el sistema, hará falta una tabla `permisos` y su relación con `roles`; si están fijos en el código, basta este catálogo. Por confirmar.
-
-| Columna | Tipo | Clave | Nulo | Descripción |
-|---|---|---|---|---|
-| id | BIGINT IDENTITY | PK | No | Identificador |
-| nombre | VARCHAR(40) | UQ | No | Administrador, Técnico, Secretario/a |
-
-**Historial:**
-- 2026-11-02: propuesta.
-
----
-
-## facturas
-- **Estado:** Propuesta
-- **Origen:** capturas 6 y 7 (nueva venta e historial de facturas).
-- **Propósito:** documento de cobro de una venta de productos o de una reparación.
-- **Justificación:** es el documento fiscal del negocio, el origen de los abonos en caja y de las cuentas por cobrar.
-- **Alternativas descartadas:**
-  - Tablas separadas para facturas de venta y de reparación: comparten numeración (`FAC-000013` a `FAC-000016` mezcla ambos tipos), cliente, totales y abonos.
-  - Columna `tipo` (Venta/Reparación): se deduce de si `orden_reparacion_id` está vacío o no, así que guardarla sería redundante.
-- **Valoración crítica:**
-  - **Totales:** subtotal sin IVA, IVA y total se calculan desde `detalle_factura`. Por tratarse de un documento fiscal, propongo una excepción a D-008: guardarlos al emitir la factura, porque una vez emitida no puede cambiar aunque cambien los precios o el IVA. Por validar.
-  - **Abonado, saldo y estado Pagado/Pendiente** se calculan desde los abonos (hallazgo 10).
-  - **Anulación en lugar de borrado** (hallazgo 11): columnas `anulada`, `fecha_anulacion` y `motivo_anulacion`.
-  - **SRI:** el IVA del 15 % y la cédula/RUC indican Ecuador. La numeración `FAC-000016` no sigue el formato del SRI (`001-001-000000016`), así que hay que confirmar si son facturas electrónicas autorizadas o comprobantes internos. Si son del SRI, faltan clave de acceso, número de autorización, establecimiento y punto de emisión.
-  - Una factura de reparación ¿puede llevar repuestos además del servicio? Si sí, todo va en `detalle_factura` y no cambia el modelo.
-
-| Columna | Tipo | Clave | Nulo | Descripción |
-|---|---|---|---|---|
-| id | BIGINT IDENTITY | PK | No | Identificador |
-| numero | VARCHAR(20) | UQ | No | Número visible, p. ej. `FAC-000016` |
-| cliente_id | BIGINT | FK | No | Cliente facturado |
-| orden_reparacion_id | BIGINT | FK | Sí | Orden cobrada; nula en ventas |
-| proforma_id | BIGINT | FK, UQ | Sí | Proforma convertida en esta venta |
-| fecha_emision | TIMESTAMPTZ | | No | Fecha y hora |
-| subtotal_sin_iva | NUMERIC(12,2) | | No | Guardado al emitir (por validar) |
-| total_iva | NUMERIC(12,2) | | No | Guardado al emitir (por validar) |
-| total | NUMERIC(12,2) | | No | Guardado al emitir (por validar) |
-| anulada | BOOLEAN | | No | Si fue anulada |
-| fecha_anulacion | TIMESTAMPTZ | | Sí | Cuándo se anuló |
-| motivo_anulacion | VARCHAR(250) | | Sí | Por qué se anuló |
-| usuario_id | BIGINT | FK | No | Quién la emitió |
-
-**Relaciones:**
-- `clientes` 1 → N `facturas` mediante `cliente_id`.
-- `ordenes_reparacion` 1 → 0..1 `facturas` mediante `orden_reparacion_id` (por confirmar si una orden puede tener más de una factura).
-- `proformas` 1 → 0..1 `facturas` mediante `proforma_id`.
-- `facturas` 1 → N `detalle_factura`.
-- `facturas` 1 → N `movimientos_caja` (abonos).
-- `facturas` 1 → N `envios_correo`.
-
-**Historial:**
-- 2026-11-02: propuesta a partir de las capturas de Ventas y Facturas.
-
----
-
-## detalle_factura
-- **Estado:** Propuesta
-- **Origen:** captura 6 (producto, cantidad, tarifa y "Detalle de venta").
-- **Propósito:** cada línea de una factura.
-- **Justificación:** una factura tiene varios productos o servicios; sin esta tabla habría que repetir columnas en la factura.
-- **Alternativas descartadas:** guardar las líneas como texto o JSON en la factura (no se puede consultar qué se vendió).
-- **Valoración crítica:**
-  - **`precio_unitario` y `porcentaje_iva` no son redundantes** aunque el producto ya tenga precio: son una copia del momento de la venta. Si mañana cambia el precio o el IVA, las facturas anteriores no deben cambiar.
-  - `tarifa_id` registra con qué tarifa se vendió (Público, Técnico, Mayorista).
-  - La pantalla de venta **no tiene descuento**. No lo añado; si se usa, hay que confirmarlo.
-
-| Columna | Tipo | Clave | Nulo | Descripción |
-|---|---|---|---|---|
-| id | BIGINT IDENTITY | PK | No | Identificador |
-| factura_id | BIGINT | FK | No | Factura a la que pertenece |
-| producto_id | BIGINT | FK | No | Producto o servicio vendido |
-| tarifa_id | BIGINT | FK | No | Tarifa aplicada |
-| cantidad | NUMERIC(10,2) | | No | Cantidad, mayor que 0 |
-| precio_unitario | NUMERIC(12,2) | | No | Precio con IVA en el momento de la venta |
-| porcentaje_iva | NUMERIC(5,2) | | No | IVA aplicado (p. ej. 15.00) |
-
-**Relaciones:**
-- `facturas` 1 → N `detalle_factura` mediante `factura_id`.
-- `productos` 1 → N `detalle_factura` mediante `producto_id`.
-- `tarifas` 1 → N `detalle_factura` mediante `tarifa_id`.
-
-**Historial:**
-- 2026-11-02: propuesta.
-
----
-
-## productos
-- **Estado:** Propuesta
-- **Origen:** capturas 8 y 9 (formulario de producto, productos registrados e inventario actual; 87 productos).
-- **Propósito:** catálogo de lo que se vende: productos físicos (repuestos, laptops) y servicios (mantenimiento).
-- **Justificación:** ventas, inventario y facturas dependen de él.
-- **Alternativas descartadas:** tablas separadas para productos y servicios. Comparten código, nombre, categoría, precios y se facturan igual; basta `es_servicio`.
-- **Valoración crítica:**
-  - **Servicios sin stock** (hallazgo 7): si `es_servicio = true`, no tiene movimientos de inventario.
-  - **Stock:** el sistema viejo lo guarda en el producto y se edita a mano. Propongo calcularlo desde `movimientos_inventario` (D-010). `stock_minimo` sí se guarda, porque es un parámetro.
-  - **Estado "Disponible / Sin stock"** se calcula desde el stock; no es columna.
-  - **Precios:** las tres columnas Público, Técnico y Mayorista se pasan a `precios_producto` (D-011). Solo `precio_compra` queda en el producto.
-  - **`precio_compra` vacío** en el sistema viejo (hallazgo 12): si siempre será 0, conviene preguntarse si se necesita.
-  - **IVA:** los precios incluyen IVA del 15 %. En Ecuador algunos productos llevan IVA 0 %. Si hay productos con distinto IVA, hace falta `porcentaje_iva` en el producto; si no, basta el valor de Configuración.
-
-| Columna | Tipo | Clave | Nulo | Descripción |
-|---|---|---|---|---|
-| id | BIGINT IDENTITY | PK | No | Identificador |
-| codigo | VARCHAR(30) | UQ | No | Código, p. ej. `A0071`, `E001` |
-| nombre | VARCHAR(200) | | No | Nombre del producto o servicio |
-| categoria_producto_id | BIGINT | FK | No | Servicio, repuesto, laptop… |
-| marca_id | BIGINT | FK | Sí | Marca; nula en servicios |
-| es_servicio | BOOLEAN | | No | Si no lleva control de stock |
-| precio_compra | NUMERIC(12,2) | | Sí | Costo de compra |
-| stock_minimo | INTEGER | | No | Umbral para "stock bajo" |
-| activo | BOOLEAN | | No | Borrado lógico |
-
-**Relaciones:**
-- `categorias_producto` 1 → N `productos`.
-- `marcas` 1 → N `productos`.
-- `productos` 1 → N `precios_producto`.
-- `productos` 1 → N `detalle_factura`.
-- `productos` 1 → N `movimientos_inventario`.
-
-**Historial:**
-- 2026-11-02: propuesta.
-
----
-
-## categorias_producto
-- **Estado:** Propuesta
-- **Origen:** capturas 8 y 9 (servicio, repuesto, Laptop; el campo sugiere "Repuestos, accesorios…").
-- **Propósito:** catálogo de categorías de productos.
-- **Justificación:** el buscador filtra por categoría y hoy hay variantes de mayúsculas (hallazgo 6).
-- **Alternativas descartadas:** texto libre (variantes) o `ENUM` (D-007).
-- **Valoración crítica:** "servicio" como categoría se solapa con `es_servicio`. Si todas las categorías de servicio son una sola, se podría quitar `es_servicio` y deducirlo de la categoría; prefiero el indicador porque es explícito. Por validar.
-
-| Columna | Tipo | Clave | Nulo | Descripción |
-|---|---|---|---|---|
-| id | BIGINT IDENTITY | PK | No | Identificador |
-| nombre | VARCHAR(60) | UQ | No | Servicio, repuesto, laptop, accesorio… |
-| activo | BOOLEAN | | No | Si aparece en la lista |
-
-**Historial:**
-- 2026-11-02: propuesta.
-
----
 
 ## marcas
-- **Estado:** Propuesta
-- **Origen:** capturas 8, 9 y 10 (hp, Hp, xiomi, OEM, lenovo, sony…).
-- **Propósito:** catálogo de marcas, compartido por productos y equipos.
-- **Justificación:** el texto libre ya produjo variantes y errores (`hp`/`Hp`, `xiomi`). Una sola tabla sirve a productos y a equipos de clientes.
-- **Alternativas descartadas:** dos catálogos (marcas de productos y marcas de equipos): sería la misma lista repetida.
-- **Valoración crítica:** "OEM" no es una marca sino "sin marca/genérico"; se puede mantener como valor del catálogo o dejar `marca_id` nulo. Por decidir.
+- **Propósito:** marcas de productos y de equipos de clientes.
+- **Justificación:** el sistema viejo tiene `HP`/`Hp`/`hp`, `xiomi`, `GENIUS NEGRO`, `PM-02`… (hallazgo 2). Una sola lista sirve a productos y equipos.
+- **Alternativas descartadas:** un catálogo por uso (la misma lista repetida).
+- **Valoración crítica:** "OEM" no es una marca (D-022). El color y el modelo no van aquí: van en el nombre del producto o en el modelo del equipo.
 
 | Columna | Tipo | Clave | Nulo | Descripción |
 |---|---|---|---|---|
-| id | BIGINT IDENTITY | PK | No | Identificador |
-| nombre | VARCHAR(60) | UQ | No | HP, Lenovo, Sony, Xiaomi… |
+| id | IDENTITY | PK | No | Identificador |
+| nombre | VARCHAR(60) | UQ | No | HP, Lenovo, Sony, Genius… |
 | activo | BOOLEAN | | No | Si aparece en la lista |
 
-**Historial:**
-- 2026-11-02: propuesta.
+## categorias_producto
+- **Propósito:** Accesorio, Repuesto, Laptop, Cargador, Servicio…
+- **Justificación:** 14 variantes de texto en 87 productos (hallazgo 1). Además, la categoría decide si el producto lleva stock (respuesta C6).
+- **Alternativas descartadas:**
+  - Texto libre (el problema actual).
+  - `es_servicio` en cada producto: la respuesta C6 lo pone en la categoría, así un servicio nunca queda mal marcado.
+- **Valoración crítica:** si una categoría de servicio pasa a tener stock, todos sus productos cambian a la vez; es el comportamiento deseado.
 
----
+| Columna | Tipo | Clave | Nulo | Descripción |
+|---|---|---|---|---|
+| id | IDENTITY | PK | No | Identificador |
+| nombre | VARCHAR(60) | UQ | No | Accesorio, Repuesto, Servicio… |
+| es_servicio | BOOLEAN | | No | Sus productos no llevan stock |
+| activo | BOOLEAN | | No | Si aparece en la lista |
 
 ## tarifas
-- **Estado:** Propuesta
-- **Origen:** capturas 6 y 8 (lista "Tarifa" en ventas; columnas Público, Técnico, Mayorista).
-- **Propósito:** tipos de precio que se aplican al vender.
-- **Justificación:** la venta elige la tarifa por línea, y la factura debe registrar cuál se aplicó.
-- **Alternativas descartadas:** guardar el nombre de la tarifa como texto en el detalle.
-- **Valoración crítica:** ¿la tarifa depende del cliente (un técnico siempre compra a precio técnico)? Si es así, conviene `clientes.tarifa_id` como tarifa por defecto.
+- **Propósito:** tipos de precio: Público, Técnico, Mayorista.
+- **Justificación:** las tarifas son configurables (respuesta B5) y cada cliente tiene una por defecto (respuesta B4).
+- **Alternativas descartadas:** tres columnas de precio en `productos` (D-011).
 
 | Columna | Tipo | Clave | Nulo | Descripción |
 |---|---|---|---|---|
-| id | BIGINT IDENTITY | PK | No | Identificador |
+| id | IDENTITY | PK | No | Identificador |
 | nombre | VARCHAR(40) | UQ | No | Público, Técnico, Mayorista |
+| es_predeterminada | BOOLEAN | | No | La que usan proformas y clientes nuevos (Público) |
 | activo | BOOLEAN | | No | Si aparece en la lista |
 
-**Historial:**
-- 2026-11-02: propuesta.
+## tipos_equipo
+- **Propósito:** Laptop, Computadora, PlayStation, Xbox, Impresora, Mando, Tarjeta gráfica…
+- **Justificación:** sustituye "Otro" + texto libre (hallazgo 4). La garantía es configurable por tipo (respuesta A7).
+- **Alternativas descartadas:**
+  - Garantía fija en las cláusulas: la respuesta A7 pide que dependa del tipo.
+  - Garantía escrita a mano en cada orden: así queda en 0 días en 26 de 27 equipos (hallazgo 25).
+
+| Columna | Tipo | Clave | Nulo | Descripción |
+|---|---|---|---|---|
+| id | IDENTITY | PK | No | Identificador |
+| nombre | VARCHAR(60) | UQ | No | Laptop, PlayStation… |
+| dias_garantia | SMALLINT | | No | Garantía por defecto (p. ej. 90) |
+| activo | BOOLEAN | | No | Si aparece en la lista |
+
+## estados_orden
+- **Propósito:** Recibido, En diagnóstico, Esperando aprobación, En reparación, Reparado, Entregado (respuesta A2, en ese orden).
+- **Justificación:** filtros e indicadores de órdenes, e historial de estados.
+- **Alternativas descartadas:** texto libre o `ENUM` (D-007).
+- **Valoración crítica:** si el cliente no aprueba el presupuesto en "Esperando aprobación", la lista no tiene un estado propio para eso. Hoy pasaría a "Entregado", cobrando solo el diagnóstico, con el motivo en la observación del historial (pregunta P2).
+
+| Columna | Tipo | Clave | Nulo | Descripción |
+|---|---|---|---|---|
+| id | IDENTITY | PK | No | Identificador |
+| nombre | VARCHAR(40) | UQ | No | Recibido … Entregado |
+| orden | SMALLINT | UQ | No | Posición en el flujo (1 a 6) |
+| es_final | BOOLEAN | | No | Cierra la orden (Entregado) |
+| inicia_garantia | BOOLEAN | | No | La garantía empieza en este estado (Entregado) |
 
 ---
 
+# Seguridad
+
+## usuarios
+- **Propósito:** empleados que inician sesión.
+- **Justificación:** toda operación registra quién la hizo. El login usa usuario o correo (captura 15).
+- **Alternativas descartadas:** `empleados` aparte, o administrador aparte (D-014).
+- **Valoración crítica:**
+  - Usuario y correo únicos (el correo puede faltar; respuesta D4).
+  - Contraseña siempre como hash.
+  - `intentos_fallidos` y `bloqueado_hasta` frenan ataques de fuerza bruta en el login. Son estado del usuario, no historial.
+
+| Columna | Tipo | Clave | Nulo | Descripción |
+|---|---|---|---|---|
+| id | IDENTITY | PK | No | Identificador |
+| nombre_completo | VARCHAR(150) | | No | Nombre del empleado |
+| nombre_usuario | VARCHAR(50) | UQ | No | Usuario de acceso |
+| correo | VARCHAR(150) | UQ | Sí | Correo, también para iniciar sesión |
+| hash_contrasena | VARCHAR(255) | | No | Contraseña cifrada |
+| rol_id | BIGINT | FK | No | Rol |
+| intentos_fallidos | SMALLINT | | No | Intentos fallidos seguidos |
+| bloqueado_hasta | TIMESTAMPTZ | | Sí | Bloqueo temporal tras varios intentos |
+| activo | BOOLEAN | | No | Si puede iniciar sesión |
+| fecha_creacion | TIMESTAMPTZ | | No | Alta |
+
+## roles
+- **Propósito:** Administrador, Técnico, Secretario/a.
+- **Justificación:** agrupa permisos (respuesta D3).
+
+| Columna | Tipo | Clave | Nulo | Descripción |
+|---|---|---|---|---|
+| id | IDENTITY | PK | No | Identificador |
+| nombre | VARCHAR(40) | UQ | No | Administrador, Técnico, Secretario/a |
+| descripcion | VARCHAR(200) | | Sí | Para qué sirve el rol |
+
+## permisos
+- **Propósito:** acciones que se pueden permitir o negar: `facturas.anular`, `ventas.aplicar_descuento`, `caja.cerrar`…
+- **Justificación:** los permisos se gestionan en la BD desde el panel administrativo (respuesta D3).
+- **Alternativas descartadas:** permisos fijos en el código (lo que pide evitar la respuesta D3).
+- **Valoración crítica:** la lista de permisos la define el sistema (cada permiso corresponde a una acción programada). El administrador decide qué rol tiene cuál, pero no inventa permisos nuevos.
+
+| Columna | Tipo | Clave | Nulo | Descripción |
+|---|---|---|---|---|
+| id | IDENTITY | PK | No | Identificador |
+| codigo | VARCHAR(80) | UQ | No | `modulo.accion`, p. ej. `facturas.anular` |
+| modulo | VARCHAR(40) | | No | Caja, Ventas, Inventario… |
+| descripcion | VARCHAR(200) | | No | Texto que ve el administrador |
+
+## roles_permisos
+- **Propósito:** qué permisos tiene cada rol.
+- **Justificación:** relación N a N entre `roles` y `permisos`.
+- **Alternativas descartadas:** lista de permisos en texto o JSON dentro del rol (sin integridad; hallazgo 10).
+
+| Columna | Tipo | Clave | Nulo | Descripción |
+|---|---|---|---|---|
+| rol_id | BIGINT | PK, FK | No | Rol |
+| permiso_id | BIGINT | PK, FK | No | Permiso |
+
+## sesiones
+- **Propósito:** cada inicio de sesión en un dispositivo.
+- **Justificación:** no existe nada de autenticación en el sistema viejo (hallazgo 26). Permite ver dónde está conectado un usuario, cerrar una sesión concreta o todas, y cortar el acceso de un usuario desactivado.
+- **Alternativas descartadas:** sesión solo en el token, sin tabla: no se puede revocar antes de que expire.
+- **Valoración crítica:** los access tokens (JWT de corta duración) **no** se guardan; solo la sesión y sus refresh tokens.
+
+| Columna | Tipo | Clave | Nulo | Descripción |
+|---|---|---|---|---|
+| id | IDENTITY | PK | No | Identificador |
+| usuario_id | BIGINT | FK | No | Usuario |
+| fecha_inicio | TIMESTAMPTZ | | No | Inicio de sesión |
+| ultima_actividad | TIMESTAMPTZ | | No | Último uso |
+| ip | INET | | Sí | Dirección IP |
+| user_agent | VARCHAR(300) | | Sí | Navegador o dispositivo |
+| expira_en | TIMESTAMPTZ | | No | Caducidad absoluta |
+| revocada_en | TIMESTAMPTZ | | Sí | Cierre de sesión o revocación |
+
+## refresh_tokens
+- **Propósito:** tokens para renovar el acceso, con rotación: cada uso emite uno nuevo y marca el anterior como usado.
+- **Justificación:** si alguien reutiliza un token ya usado (señal de robo), se detecta y se revoca toda la sesión. Para eso hay que conservar los tokens anteriores.
+- **Alternativas descartadas:** guardar el refresh token en `sesiones` (solo el último; no permite detectar la reutilización).
+- **Valoración crítica:** se guarda el **hash** del token, nunca el token. Se pueden purgar los tokens expirados periódicamente.
+
+| Columna | Tipo | Clave | Nulo | Descripción |
+|---|---|---|---|---|
+| id | IDENTITY | PK | No | Identificador |
+| sesion_id | BIGINT | FK | No | Sesión a la que pertenece |
+| hash_token | CHAR(64) | UQ | No | SHA-256 del token |
+| emitido_en | TIMESTAMPTZ | | No | Emisión |
+| expira_en | TIMESTAMPTZ | | No | Caducidad |
+| usado_en | TIMESTAMPTZ | | Sí | Cuándo se rotó |
+| reemplazado_por_id | BIGINT | FK | Sí | Token que lo sustituyó |
+| revocado_en | TIMESTAMPTZ | | Sí | Revocación |
+
+---
+
+# Clientes y proveedores
+
+## clientes
+- **Propósito:** personas y empresas a las que se vende o se repara (respuesta F).
+- **Justificación:** facturas, órdenes, proformas y cuentas por cobrar.
+- **Alternativas descartadas:** datos del cliente copiados en cada documento (hallazgo 12).
+- **Valoración crítica:**
+  - `razon_social` sirve para personas y empresas (respuesta D1).
+  - "Consumidor final" es un cliente más, con su tipo de identificación (respuesta D2).
+  - `tarifa_id` es la tarifa por defecto; se puede cambiar en cada venta (respuesta B4).
+
+| Columna | Tipo | Clave | Nulo | Descripción |
+|---|---|---|---|---|
+| id | IDENTITY | PK | No | Identificador |
+| tipo_identificacion_id | BIGINT | FK | No | Cédula, RUC, Pasaporte, Consumidor final |
+| identificacion | VARCHAR(20) | UQ | No | Número |
+| razon_social | VARCHAR(200) | | No | Nombre o razón social |
+| telefono | VARCHAR(20) | | Sí | Teléfono |
+| correo | VARCHAR(150) | | Sí | Para enviar facturas y órdenes |
+| direccion | VARCHAR(250) | | Sí | Dirección |
+| tarifa_id | BIGINT | FK | No | Tarifa por defecto |
+| activo | BOOLEAN | | No | Borrado lógico |
+| fecha_creacion | TIMESTAMPTZ | | No | Alta |
+
+## proveedores
+- **Propósito:** a quién se compra mercadería y repuestos.
+- **Justificación:** se registran las compras a proveedores (respuesta C3).
+- **Alternativas descartadas:** reutilizar `clientes` con un indicador de "es proveedor". Comparten campos, pero mezclar ambos enreda las búsquedas de ventas y los permisos.
+- **Valoración crítica:** si un proveedor también compra en el local, quedará en ambas tablas; es poco frecuente y aceptable.
+
+| Columna | Tipo | Clave | Nulo | Descripción |
+|---|---|---|---|---|
+| id | IDENTITY | PK | No | Identificador |
+| tipo_identificacion_id | BIGINT | FK | No | RUC, Cédula… |
+| identificacion | VARCHAR(20) | UQ | No | Número |
+| razon_social | VARCHAR(200) | | No | Nombre |
+| telefono | VARCHAR(20) | | Sí | Teléfono |
+| correo | VARCHAR(150) | | Sí | Correo |
+| direccion | VARCHAR(250) | | Sí | Dirección |
+| activo | BOOLEAN | | No | Borrado lógico |
+
+---
+
+# Servicio técnico
+
+## equipos
+- **Propósito:** cada aparato físico.
+- **Justificación:** un equipo vuelve a reparación o por garantía; se registra una vez (D-006).
+- **Valoración crítica:**
+  - `cliente_id` es el **propietario**. Quien lo trae a una orden concreta va en la orden (D-017).
+  - La serie puede faltar (mandos), así que no es única obligatoria.
+
+| Columna | Tipo | Clave | Nulo | Descripción |
+|---|---|---|---|---|
+| id | IDENTITY | PK | No | Identificador |
+| cliente_id | BIGINT | FK | No | Propietario |
+| tipo_equipo_id | BIGINT | FK | No | Tipo |
+| marca_id | BIGINT | FK | Sí | Marca |
+| modelo | VARCHAR(120) | | Sí | Modelo |
+| serie | VARCHAR(80) | | Sí | Número de serie |
+| fecha_creacion | TIMESTAMPTZ | | No | Alta |
+
+## ordenes_reparacion
+- **Propósito:** cada ingreso de un equipo al taller.
+- **Justificación:** documento central del servicio técnico.
+- **Valoración crítica:**
+  - **Clientes:** `cliente_id` es quien trae el equipo y responde por la orden (respuesta A1). La factura puede ir a otro cliente (D-017).
+  - **Técnico** asignado (respuesta A4); puede estar vacío hasta asignarlo. Que el usuario tenga rol Técnico se valida en la aplicación.
+  - **Diagnóstico, costo estimado, fecha estimada de entrega y accesorios** (respuesta A5). Los accesorios son texto ("cargador, funda"); no se consultan por separado, así que no merecen tabla.
+  - **El estado actual no es columna:** es el último registro de `historial_estados_orden` (D-016). Lo mismo para las fechas de reparación y de entrega.
+  - **Garantía:** `dias_garantia` se copia del tipo de equipo al crear la orden, para que cambiar la configuración no altere las garantías ya dadas. Fin de garantía = fecha del estado Entregado + `dias_garantia` (D-015).
+  - **Orden de garantía:** `orden_garantia_id` enlaza con la orden original (respuesta A7).
+  - **Diagnóstico cobrado:** el diagnóstico se factura como un producto de categoría Servicio (respuesta A6). Una orden tiene una factura como máximo (respuesta A8).
+
+| Columna | Tipo | Clave | Nulo | Descripción |
+|---|---|---|---|---|
+| id | IDENTITY | PK | No | Identificador |
+| numero | VARCHAR(20) | UQ | No | `OR-000029` |
+| equipo_id | BIGINT | FK | No | Equipo |
+| cliente_id | BIGINT | FK | No | Quien trae el equipo |
+| tecnico_id | BIGINT | FK | Sí | Técnico asignado (`usuarios`) |
+| dano_reportado | TEXT | | No | Falla que indica el cliente |
+| accesorios | VARCHAR(250) | | Sí | Accesorios recibidos |
+| observaciones | TEXT | | Sí | Estado físico y notas |
+| diagnostico | TEXT | | Sí | Diagnóstico técnico |
+| costo_estimado | NUMERIC(12,2) | | Sí | Presupuesto para el cliente |
+| fecha_ingreso | TIMESTAMPTZ | | No | Recepción |
+| fecha_entrega_estimada | DATE | | Sí | Fecha prometida |
+| dias_garantia | SMALLINT | | No | Copiado del tipo de equipo |
+| orden_garantia_id | BIGINT | FK | Sí | Orden original, si es por garantía |
+| pdf_ingreso_archivo_id | BIGINT | FK | Sí | PDF de la orden de ingreso |
+| usuario_id | BIGINT | FK | No | Quién la registró |
+
+## historial_estados_orden
+- **Propósito:** cada cambio de estado de una orden: cuál, cuándo y quién.
+- **Justificación:** respuesta A3. El sistema viejo solo guarda el estado actual (hallazgo 23). Además da las fechas de reparación y de entrega, y el inicio de la garantía.
+- **Alternativas descartadas:** columnas `fecha_reparado`, `fecha_entregado`… (una por estado; si se añade un estado, hay que añadir una columna).
+- **Valoración crítica:** al crear la orden se inserta el primer registro ("Recibido").
+
+| Columna | Tipo | Clave | Nulo | Descripción |
+|---|---|---|---|---|
+| id | IDENTITY | PK | No | Identificador |
+| orden_reparacion_id | BIGINT | FK | No | Orden |
+| estado_orden_id | BIGINT | FK | No | Nuevo estado |
+| fecha_hora | TIMESTAMPTZ | | No | Cuándo |
+| usuario_id | BIGINT | FK | No | Quién |
+| observacion | VARCHAR(250) | | Sí | Motivo o nota |
+
+## ordenes_archivos
+- **Estado:** Propuesta, por confirmar (pregunta P3)
+- **Propósito:** fotos del equipo al recibirlo.
+- **Justificación:** las cláusulas excluyen de la garantía los golpes, caídas y humedad. Una foto al recibir el equipo prueba su estado en caso de reclamo.
+- **Alternativas descartadas:** fotos en base64 en la orden (hallazgo 9).
+
+| Columna | Tipo | Clave | Nulo | Descripción |
+|---|---|---|---|---|
+| orden_reparacion_id | BIGINT | PK, FK | No | Orden |
+| archivo_id | BIGINT | PK, FK | No | Foto |
+| descripcion | VARCHAR(150) | | Sí | "Golpe en esquina", "pantalla rota"… |
+
+---
+
+# Productos e inventario
+
+## productos
+- **Propósito:** lo que se vende: productos físicos y servicios.
+- **Justificación:** ventas, proformas, compras e inventario.
+- **Valoración crítica:**
+  - Si lleva stock o no lo decide la categoría (`categorias_producto.es_servicio`; respuesta C6).
+  - El IVA viene de `tipos_iva` (respuesta B3).
+  - `precio_compra` es el **costo actual**: se actualiza al registrar una compra y es editable (respuesta C4). Para calcular la ganancia se copia en cada línea vendida (D-020).
+  - `calidad_repuesto` (Original, OEM, Genérico) aplica solo a repuestos (D-022; pregunta P5).
+  - El stock se calcula desde `movimientos_inventario` (D-010); `stock_minimo` es un parámetro.
+
+| Columna | Tipo | Clave | Nulo | Descripción |
+|---|---|---|---|---|
+| id | IDENTITY | PK | No | Identificador |
+| codigo | VARCHAR(30) | UQ | No | `A0071` |
+| nombre | VARCHAR(200) | | No | Nombre |
+| categoria_producto_id | BIGINT | FK | No | Categoría |
+| marca_id | BIGINT | FK | Sí | Marca |
+| tipo_iva_id | BIGINT | FK | No | IVA aplicable |
+| calidad_repuesto | VARCHAR(10) | | Sí | `original`, `oem`, `generico` (CHECK) |
+| precio_compra | NUMERIC(12,2) | | No | Costo actual |
+| stock_minimo | INTEGER | | No | Umbral de stock bajo |
+| activo | BOOLEAN | | No | Borrado lógico |
+
 ## precios_producto
-- **Estado:** Propuesta, por validar (D-011)
-- **Origen:** normalización de las columnas Público, Técnico y Mayorista del producto.
 - **Propósito:** precio de cada producto en cada tarifa.
-- **Justificación:** tres columnas de precio son un grupo repetido. Con esta tabla, una tarifa nueva (p. ej. "Distribuidor") es un registro más, no una columna nueva en `productos` y en todas las pantallas.
-- **Alternativas descartadas:** mantener tres columnas en `productos`. Es más simple y válido **si las tarifas nunca cambian**. Es la alternativa a decidir.
-- **Valoración crítica:** añade una tabla y una unión al consultar precios. Si las tres tarifas son definitivas, la opción de columnas es aceptable.
+- **Justificación:** tarifas configurables (respuesta B5, D-011).
 
 | Columna | Tipo | Clave | Nulo | Descripción |
 |---|---|---|---|---|
@@ -543,181 +400,290 @@ Ficha de cada entidad del modelo. Una entidad sin ficha completa no entra al dia
 | tarifa_id | BIGINT | PK, FK | No | Tarifa |
 | precio | NUMERIC(12,2) | | No | Precio con IVA incluido |
 
-**Relaciones:**
-- `productos` 1 → N `precios_producto`.
-- `tarifas` 1 → N `precios_producto`.
+## productos_archivos
+- **Propósito:** imágenes de cada producto.
+- **Justificación:** el usuario prevé imágenes de productos; el sistema viejo las guarda en base64 (hallazgo 9).
+- **Alternativas descartadas:** `archivos_vinculos` genérico (D-024).
 
-**Historial:**
-- 2026-11-02: propuesta.
-
----
+| Columna | Tipo | Clave | Nulo | Descripción |
+|---|---|---|---|---|
+| producto_id | BIGINT | PK, FK | No | Producto |
+| archivo_id | BIGINT | PK, FK | No | Imagen |
+| posicion | SMALLINT | | No | Orden de las imágenes |
+| es_principal | BOOLEAN | | No | Imagen que se muestra en listas |
 
 ## movimientos_inventario
-- **Estado:** Propuesta, por validar (D-010)
-- **Origen:** no existe en el sistema viejo; se propone por el hallazgo 13.
-- **Propósito:** cada entrada o salida de unidades de un producto.
-- **Justificación:**
-  - Hoy el stock se sobrescribe a mano: si un producto pasa de 5 a 1, no se sabe si se vendió, se usó en una reparación, se dañó o fue un error.
-  - Con esta tabla cada cambio tiene motivo, fecha, usuario y documento de origen (factura, orden, ajuste).
-  - Permite responder "¿cuándo entró este disco y a qué precio?" y detectar pérdidas.
-- **Alternativas descartadas:** solo la columna `stock` en `productos`, como el sistema viejo (sin trazabilidad).
+- **Propósito:** cada entrada o salida de unidades.
+- **Justificación:** el stock se calcula de aquí (D-010) con trazabilidad completa. Se alimenta de compras, ventas, repuestos usados en reparaciones (respuesta A9) y ajustes.
 - **Valoración crítica:**
-  - Es la tabla que más crece; con 87 productos y el volumen de un local no es problema.
-  - Las entradas de mercadería (compras) no aparecen en ninguna captura. ¿Hay proveedores y compras registradas? Si sí, harían falta `proveedores` y `compras`; si no, las entradas son ajustes manuales con motivo.
-  - Los repuestos usados en una reparación ¿se descuentan del inventario? Si sí, la salida se enlaza a la factura de reparación.
+  - Enlaza con la factura o la compra que lo originó; un `CHECK` impide que tenga las dos.
+  - Al anular una factura se registra una entrada de "anulación" que devuelve las unidades.
+  - El stock inicial al migrar es un movimiento de tipo "inicial".
 
 | Columna | Tipo | Clave | Nulo | Descripción |
 |---|---|---|---|---|
-| id | BIGINT IDENTITY | PK | No | Identificador |
+| id | IDENTITY | PK | No | Identificador |
 | producto_id | BIGINT | FK | No | Producto |
 | tipo | VARCHAR(10) | | No | `entrada` o `salida` (CHECK) |
-| motivo | VARCHAR(30) | | No | Venta, compra, ajuste, devolución, daño… |
-| cantidad | INTEGER | | No | Unidades, mayor que 0 |
+| motivo | VARCHAR(20) | | No | `compra`, `venta`, `ajuste`, `devolucion`, `dano`, `inicial`, `anulacion` (CHECK) |
+| cantidad | INTEGER | | No | Mayor que 0 |
 | costo_unitario | NUMERIC(12,2) | | Sí | Costo en entradas |
 | factura_id | BIGINT | FK | Sí | Factura que originó la salida |
+| compra_id | BIGINT | FK | Sí | Compra que originó la entrada |
 | observacion | VARCHAR(250) | | Sí | Detalle del ajuste |
-| fecha_hora | TIMESTAMPTZ | | No | Fecha y hora |
-| usuario_id | BIGINT | FK | No | Quién lo registró |
+| fecha_hora | TIMESTAMPTZ | | No | Cuándo |
+| usuario_id | BIGINT | FK | No | Quién |
 
-**Relaciones:**
-- `productos` 1 → N `movimientos_inventario`.
-- `facturas` 1 → N `movimientos_inventario` (opcional).
-- `usuarios` 1 → N `movimientos_inventario`.
-
-**Historial:**
-- 2026-11-02: propuesta.
-
----
-
-## envios_correo
-- **Estado:** Propuesta
-- **Origen:** capturas 5 y 7 ("Enviar ingreso PDF", "Enviar factura PDF" y la nota "PDF enviado · correo · fecha").
-- **Propósito:** registro de cada correo enviado con una factura o una orden de ingreso.
-- **Justificación:** el sistema viejo ya muestra a quién y cuándo se envió el PDF. Si el correo falla o el cliente dice que no lo recibió, hay constancia.
-- **Alternativas descartadas:** guardar "fecha_envio" y "correo_envio" en la factura (solo recuerda el último envío y no sirve para órdenes).
-- **Valoración crítica:** referencia a dos documentos distintos. Se usan dos FK opcionales con un `CHECK` para que solo una esté llena; es más seguro que una referencia genérica sin FK.
+## compras
+- **Propósito:** cada compra de mercadería a un proveedor.
+- **Justificación:** respuesta C3. Es el origen de las entradas de inventario y del costo (respuesta C4); el sistema viejo tiene costo 0 en todo (hallazgo 8).
+- **Valoración crítica:** los totales se calculan desde `detalle_compra`. ¿Se paga desde la caja? (pregunta P1).
 
 | Columna | Tipo | Clave | Nulo | Descripción |
 |---|---|---|---|---|
-| id | BIGINT IDENTITY | PK | No | Identificador |
-| factura_id | BIGINT | FK | Sí | Factura enviada |
-| orden_reparacion_id | BIGINT | FK | Sí | Orden de ingreso enviada |
-| destinatario | VARCHAR(150) | | No | Correo de destino |
-| fecha_envio | TIMESTAMPTZ | | No | Fecha y hora |
-| exitoso | BOOLEAN | | No | Si se envió correctamente |
-| error | TEXT | | Sí | Mensaje de error si falló |
-| usuario_id | BIGINT | FK | No | Quién lo envió |
+| id | IDENTITY | PK | No | Identificador |
+| proveedor_id | BIGINT | FK | No | Proveedor |
+| numero_documento | VARCHAR(30) | | Sí | Número de la factura del proveedor |
+| fecha_compra | DATE | | No | Fecha del documento |
+| observaciones | VARCHAR(250) | | Sí | Notas |
+| anulada | BOOLEAN | | No | Si se anuló |
+| usuario_id | BIGINT | FK | No | Quién la registró |
+| fecha_registro | TIMESTAMPTZ | | No | Cuándo se registró |
 
-**Relaciones:**
-- `facturas` 1 → N `envios_correo`.
-- `ordenes_reparacion` 1 → N `envios_correo`.
+## detalle_compra
+- **Propósito:** cada producto comprado.
+- **Justificación:** una compra incluye varios productos.
 
-**Historial:**
-- 2026-11-02: propuesta.
+| Columna | Tipo | Clave | Nulo | Descripción |
+|---|---|---|---|---|
+| id | IDENTITY | PK | No | Identificador |
+| compra_id | BIGINT | FK | No | Compra |
+| producto_id | BIGINT | FK | No | Producto |
+| cantidad | INTEGER | | No | Unidades |
+| costo_unitario | NUMERIC(12,2) | | No | Costo por unidad |
+| porcentaje_iva | NUMERIC(5,2) | | No | IVA de la compra |
 
 ---
+
+# Ventas
 
 ## proformas
-- **Estado:** Propuesta
-- **Origen:** captura 11 (nueva proforma y proformas guardadas).
-- **Propósito:** cotización sin valor fiscal que se entrega al cliente y puede convertirse en venta.
-- **Justificación:** el local cotiza antes de vender ("Convertir en venta"). Guardarla permite reimprimirla, saber qué se cotizó y enlazarla con la venta resultante.
-- **Alternativas descartadas:** una tabla única `documentos` con un tipo (proforma o factura). Comparten estructura, pero tienen ciclos de vida distintos: la factura es fiscal, tiene abonos, anulación y numeración propia; la proforma vence y no tiene pagos. Mezclarlas llenaría la tabla de columnas que solo aplican a un tipo (D-013).
-- **Valoración crítica:**
-  - **Estado sin columna:** "Vigente" se calcula. Vencida si `fecha_emision + vigencia_dias` ya pasó; Convertida si hay una factura con su `proforma_id`.
-  - La lista muestra "Vigencia: –" aunque el formulario pide días. Parece que el sistema viejo no guarda la vigencia o no la muestra; aquí sí se guarda.
-  - **Sin tarifa:** a diferencia de Ventas, el formulario no permite elegir tarifa. Confirmar si siempre cotiza a precio Público. Por coherencia con `detalle_factura`, el detalle guarda el precio aplicado.
-  - **Borrado:** una proforma no es fiscal, así que puede borrarse, pero no si ya se convirtió en venta (la factura la referencia).
-  - Las proformas ¿también sirven para cotizar reparaciones? En las capturas solo se ven productos.
+- **Propósito:** cotización sin valor fiscal que puede convertirse en venta.
+- **Justificación:** D-013. Cotiza a la tarifa predeterminada, Público (respuesta B6). Al convertirla se respeta el precio cotizado (respuesta B7).
+- **Valoración crítica:** sin estado ni fecha de vencimiento guardados (hallazgo 18): vencida si `fecha_emision + vigencia_dias` ya pasó; convertida si hay una factura con su `proforma_id`.
 
 | Columna | Tipo | Clave | Nulo | Descripción |
 |---|---|---|---|---|
-| id | BIGINT IDENTITY | PK | No | Identificador |
-| numero | VARCHAR(20) | UQ | No | Número visible, p. ej. `PRO-000002` |
-| cliente_id | BIGINT | FK | No | Cliente al que se cotiza |
-| fecha_emision | TIMESTAMPTZ | | No | Fecha y hora |
-| vigencia_dias | SMALLINT | | No | Días de validez (por defecto 7) |
-| observaciones | TEXT | | Sí | Condiciones, tiempo de entrega, alcance |
+| id | IDENTITY | PK | No | Identificador |
+| numero | VARCHAR(20) | UQ | No | `PRO-000002` |
+| cliente_id | BIGINT | FK | No | Cliente |
+| fecha_emision | TIMESTAMPTZ | | No | Fecha |
+| vigencia_dias | SMALLINT | | No | Por defecto 7 |
+| observaciones | TEXT | | Sí | Condiciones, alcance |
+| pdf_archivo_id | BIGINT | FK | Sí | PDF generado |
 | usuario_id | BIGINT | FK | No | Quién la creó |
 
-**Relaciones:**
-- `clientes` 1 → N `proformas`.
-- `proformas` 1 → N `detalle_proforma`.
-- `proformas` 1 → 0..1 `facturas` mediante `facturas.proforma_id`.
-- `usuarios` 1 → N `proformas`.
-
-**Historial:**
-- 2026-11-02: propuesta.
-
----
-
 ## detalle_proforma
-- **Estado:** Propuesta
-- **Origen:** captura 11 (producto, cantidad y "Detalle de proforma").
-- **Propósito:** cada línea de una proforma.
-- **Justificación:** misma razón que `detalle_factura`: una proforma tiene varios productos.
-- **Alternativas descartadas:** reutilizar `detalle_factura` con una FK opcional a proforma (mezcla líneas fiscales y no fiscales; ver D-013).
-- **Valoración crítica:** el precio se copia al cotizar. Al convertir en venta hay que decidir si se respeta el precio cotizado o se usa el actual; propongo respetar el cotizado mientras la proforma esté vigente.
 
 | Columna | Tipo | Clave | Nulo | Descripción |
 |---|---|---|---|---|
-| id | BIGINT IDENTITY | PK | No | Identificador |
-| proforma_id | BIGINT | FK | No | Proforma a la que pertenece |
-| producto_id | BIGINT | FK | No | Producto cotizado |
-| cantidad | NUMERIC(10,2) | | No | Cantidad, mayor que 0 |
+| id | IDENTITY | PK | No | Identificador |
+| proforma_id | BIGINT | FK | No | Proforma |
+| producto_id | BIGINT | FK | No | Producto |
+| cantidad | NUMERIC(10,2) | | No | Cantidad |
 | precio_unitario | NUMERIC(12,2) | | No | Precio con IVA al cotizar |
+| descuento | NUMERIC(12,2) | | No | Descuento de la línea (0 si no hay) |
 | porcentaje_iva | NUMERIC(5,2) | | No | IVA aplicado |
 
-**Relaciones:**
-- `proformas` 1 → N `detalle_proforma`.
-- `productos` 1 → N `detalle_proforma`.
+- **Justificación:** líneas de la proforma (antes en JSON; hallazgo 10). El descuento se incluye porque al convertir se respeta lo cotizado (respuesta B7), con descuento incluido.
 
-**Historial:**
-- 2026-11-02: propuesta.
+## facturas
+- **Propósito:** comprobante **interno** de venta o reparación (respuesta B1).
+- **Justificación:** documento de cobro, origen de abonos y de cuentas por cobrar.
+- **Valoración crítica:**
+  - `cliente_id` es **a quien se factura**, que puede no ser quien trajo el equipo (D-017).
+  - `orden_reparacion_id` es único: una orden, como máximo una factura (respuesta A8).
+  - Los totales se guardan al emitir (respuesta B8).
+  - Abonado, saldo y estado se calculan (D-009).
+  - Se anula, no se borra.
+  - Si en el futuro se emiten facturas del SRI, faltarían: establecimiento, punto de emisión, secuencial, clave de acceso, autorización y estado SRI.
+
+| Columna | Tipo | Clave | Nulo | Descripción |
+|---|---|---|---|---|
+| id | IDENTITY | PK | No | Identificador |
+| numero | VARCHAR(20) | UQ | No | `FAC-000016` |
+| cliente_id | BIGINT | FK | No | A quien se factura |
+| orden_reparacion_id | BIGINT | FK, UQ | Sí | Orden cobrada |
+| proforma_id | BIGINT | FK, UQ | Sí | Proforma convertida |
+| fecha_emision | TIMESTAMPTZ | | No | Fecha |
+| subtotal_sin_iva | NUMERIC(12,2) | | No | Al emitir |
+| total_descuento | NUMERIC(12,2) | | No | Al emitir |
+| total_iva | NUMERIC(12,2) | | No | Al emitir |
+| total | NUMERIC(12,2) | | No | Al emitir |
+| anulada | BOOLEAN | | No | Si se anuló |
+| fecha_anulacion | TIMESTAMPTZ | | Sí | Cuándo |
+| motivo_anulacion | VARCHAR(250) | | Sí | Por qué |
+| pdf_archivo_id | BIGINT | FK | Sí | PDF emitido |
+| usuario_id | BIGINT | FK | No | Quién la emitió |
+
+## detalle_factura
+- **Justificación:** líneas de la factura (antes en JSON; hallazgo 10).
+- **Valoración crítica:**
+  - `precio_unitario`, `porcentaje_iva` y `costo_unitario` son copias del momento de la venta. Con el costo se calcula la ganancia aunque después cambie (D-020).
+  - El descuento lo regulan la configuración y el permiso `ventas.aplicar_descuento` (D-019).
+  - La tarifa se elige en cada línea; por defecto, la del cliente.
+
+| Columna | Tipo | Clave | Nulo | Descripción |
+|---|---|---|---|---|
+| id | IDENTITY | PK | No | Identificador |
+| factura_id | BIGINT | FK | No | Factura |
+| producto_id | BIGINT | FK | No | Producto o servicio |
+| tarifa_id | BIGINT | FK | No | Tarifa aplicada |
+| cantidad | NUMERIC(10,2) | | No | Cantidad |
+| precio_unitario | NUMERIC(12,2) | | No | Precio con IVA al vender |
+| descuento | NUMERIC(12,2) | | No | Descuento de la línea |
+| porcentaje_iva | NUMERIC(5,2) | | No | IVA aplicado |
+| costo_unitario | NUMERIC(12,2) | | No | Costo al vender |
 
 ---
 
-## configuracion
-- **Estado:** Propuesta
-- **Origen:** captura 14 (datos de la empresa y personalización).
-- **Propósito:** datos del negocio y parámetros generales: RUC, nombre, dirección, IVA, logo, cláusulas y colores.
-- **Justificación:** facturas, órdenes y proformas imprimen estos datos, y el IVA por defecto se toma de aquí.
-- **Alternativas descartadas:**
-  - Tabla clave-valor (`clave`, `valor`): flexible, pero todo es texto, sin tipos ni validación (el IVA podría guardarse como "quince").
-  - Valores fijos en el código: obligaría a cambiar el programa para actualizar un teléfono.
+# Caja
+
+## sesiones_caja
+- **Propósito:** cada apertura y cierre de la caja única (respuesta C1).
+- **Justificación:** el sistema viejo solo guarda la caja actual y pierde los cierres (hallazgo 22).
+
+| Columna | Tipo | Clave | Nulo | Descripción |
+|---|---|---|---|---|
+| id | IDENTITY | PK | No | Identificador |
+| usuario_apertura_id | BIGINT | FK | No | Quién abrió |
+| fecha_apertura | TIMESTAMPTZ | | No | Apertura |
+| base_inicial | NUMERIC(12,2) | | No | Efectivo inicial |
+| usuario_cierre_id | BIGINT | FK | Sí | Quién cerró |
+| fecha_cierre | TIMESTAMPTZ | | Sí | Nula si está abierta |
+| monto_contado_cierre | NUMERIC(12,2) | | Sí | Efectivo contado al cerrar |
+
+## movimientos_caja
+- **Propósito:** entradas y salidas de dinero. Los ingresos con `factura_id` son los abonos (D-009).
+- **Justificación:** todo cobro se hace con la caja abierta (respuesta C2).
 - **Valoración crítica:**
-  - Tabla de **una sola fila** (D-012), garantizada con `CHECK (id = 1)`.
-  - **RUC vacío y razón social "Soporte técnico"** (hallazgo 15): sin RUC no se pueden emitir facturas electrónicas del SRI. Esto refuerza la sospecha de que las facturas actuales son comprobantes internos.
-  - **Logo:** se guarda la ruta o URL del archivo, no la imagen en la base de datos.
-  - **Cláusulas:** si cambian, las órdenes ya impresas tenían las anteriores. Si hay que demostrar qué cláusulas aceptó un cliente, habría que copiarlas en cada orden. Por decidir.
-  - **Credenciales de Gmail:** "Correo listo… mediante Gmail API" implica credenciales. No van en esta tabla sino en la configuración del servidor (hallazgo 17).
-  - Los colores de personalización son preferencias de la interfaz; se guardan aquí por simplicidad.
+  - El saldo acumulado se calcula.
+  - Al anular una factura con abonos, la devolución es un egreso enlazado a esa factura.
+
+| Columna | Tipo | Clave | Nulo | Descripción |
+|---|---|---|---|---|
+| id | IDENTITY | PK | No | Identificador |
+| sesion_caja_id | BIGINT | FK | No | Apertura de caja |
+| tipo | VARCHAR(10) | | No | `ingreso` o `egreso` (CHECK) |
+| metodo_pago_id | BIGINT | FK | No | Método |
+| monto | NUMERIC(12,2) | | No | Mayor que 0 |
+| concepto | VARCHAR(250) | | Sí | Nota libre |
+| factura_id | BIGINT | FK | Sí | Factura abonada |
+| fecha_hora | TIMESTAMPTZ | | No | Cuándo |
+| usuario_id | BIGINT | FK | No | Quién |
+
+---
+
+# Archivos y correo
+
+## archivos
+- **Propósito:** registro de cada archivo guardado fuera de la BD (imágenes y PDF): nombre, ruta, tipo y tamaño.
+- **Justificación:** el sistema viejo guarda base64 (hallazgo 9). El archivo vive en el backend o en un servicio externo; la BD solo guarda dónde está (D-024).
+- **Valoración crítica:** `hash_sha256` detecta archivos duplicados o alterados.
+
+| Columna | Tipo | Clave | Nulo | Descripción |
+|---|---|---|---|---|
+| id | IDENTITY | PK | No | Identificador |
+| nombre_original | VARCHAR(255) | | No | Nombre con el que se subió |
+| ruta | VARCHAR(500) | UQ | No | Ubicación en el almacenamiento |
+| tipo_mime | VARCHAR(100) | | No | `image/jpeg`, `application/pdf` |
+| tamano_bytes | BIGINT | | No | Tamaño |
+| hash_sha256 | CHAR(64) | | No | Huella del contenido |
+| fecha_subida | TIMESTAMPTZ | | No | Cuándo |
+| usuario_id | BIGINT | FK | Sí | Quién lo subió; nulo si lo generó el sistema |
+
+**Dónde se usa cada archivo** (todas con FK real):
+- `productos_archivos`: imágenes de productos.
+- `ordenes_archivos`: fotos del equipo.
+- `ordenes_reparacion.pdf_ingreso_archivo_id`: PDF de la orden de ingreso.
+- `facturas.pdf_archivo_id`: PDF de la factura.
+- `proformas.pdf_archivo_id`: PDF de la proforma.
+- `envios_correo.archivo_id`: adjunto enviado.
+- `configuracion.logo_archivo_id`: logo.
+
+## envios_correo
+- **Propósito:** cada envío de factura u orden por correo, con su resultado.
+- **Justificación:** el sistema viejo solo recuerda el último envío y pierde los errores (hallazgo 24).
+- **Valoración crítica:** un `CHECK` garantiza que solo una de `factura_id` u `orden_reparacion_id` esté llena.
+
+| Columna | Tipo | Clave | Nulo | Descripción |
+|---|---|---|---|---|
+| id | IDENTITY | PK | No | Identificador |
+| factura_id | BIGINT | FK | Sí | Factura enviada |
+| orden_reparacion_id | BIGINT | FK | Sí | Orden enviada |
+| archivo_id | BIGINT | FK | No | PDF adjunto |
+| destinatario | VARCHAR(150) | | No | Correo de destino |
+| fecha_envio | TIMESTAMPTZ | | No | Cuándo |
+| exitoso | BOOLEAN | | No | Resultado |
+| error | TEXT | | Sí | Mensaje si falló |
+| usuario_id | BIGINT | FK | No | Quién lo envió |
+
+---
+
+# Configuración
+
+## configuracion
+- **Propósito:** datos del negocio y parámetros generales (D-012).
+- **Valoración crítica:**
+  - **Una sola fila** (`CHECK (id = 1)`).
+  - **IVA:** `tipo_iva_predeterminado_id` es el IVA que se propone a cada producto nuevo (respuesta B3).
+  - **Descuentos:** `descuento_maximo_porcentaje` lo fija el dueño (respuesta B2); 0 = sin descuentos.
+  - **Cláusulas:** no se copian en cada orden (respuesta D5).
+  - **Credenciales de Gmail:** fuera de la BD (hallazgo 32).
 
 | Columna | Tipo | Clave | Nulo | Descripción |
 |---|---|---|---|---|
 | id | SMALLINT | PK | No | Siempre 1 |
-| ruc | VARCHAR(13) | | Sí | RUC del negocio |
+| ruc | VARCHAR(13) | | Sí | RUC |
 | nombre_comercial | VARCHAR(150) | | No | EDITRONIC |
 | razon_social | VARCHAR(200) | | Sí | Razón social legal |
 | telefono | VARCHAR(20) | | Sí | Teléfono |
-| direccion | VARCHAR(250) | | Sí | Dirección del local |
-| correo | VARCHAR(150) | | Sí | Correo de la empresa (remitente de facturas) |
-| porcentaje_iva | NUMERIC(5,2) | | No | IVA por defecto (15.00) |
-| logo_url | VARCHAR(300) | | Sí | Ruta del logo |
-| clausulas_servicio | TEXT | | Sí | Condiciones impresas en las órdenes |
-| color_principal | VARCHAR(7) | | Sí | Color en hexadecimal |
-| color_secundario | VARCHAR(7) | | Sí | Color en hexadecimal |
-
-**Relaciones:** ninguna (tabla de parámetros).
-
-**Historial:**
-- 2026-11-02: propuesta.
+| direccion | VARCHAR(250) | | Sí | Dirección |
+| correo | VARCHAR(150) | | Sí | Remitente de facturas |
+| tipo_iva_predeterminado_id | BIGINT | FK | No | IVA por defecto |
+| descuento_maximo_porcentaje | NUMERIC(5,2) | | No | Tope de descuento |
+| logo_archivo_id | BIGINT | FK | Sí | Logo |
+| clausulas_servicio | TEXT | | Sí | Condiciones impresas en órdenes |
+| color_principal | CHAR(7) | | Sí | `#4524eb` |
+| color_secundario | CHAR(7) | | Sí | `#0f172a` |
 
 ---
 
-## Cierre del levantamiento
-No hay más capturas. Lo que no se vio se resuelve con las dudas de `proyecto.md`:
-- **Detalle de orden y factura de reparación:** dudas A2 a A9.
-- **Dashboard:** se asume que solo muestra indicadores calculados con estas tablas.
-- **Perfil:** se asume que edita el propio registro de `usuarios`.
-- **Login** (captura 15): entra con usuario o correo y contraseña; no hay registro público. Confirma que `usuarios.nombre_usuario` y `usuarios.correo` deben ser únicos.
+# Relaciones principales
+
+| Origen (1) | Destino (N) | Mediante |
+|---|---|---|
+| `tipos_identificacion` | `clientes`, `proveedores` | `tipo_identificacion_id` |
+| `tarifas` | `clientes`, `precios_producto`, `detalle_factura` | `tarifa_id` |
+| `roles` | `usuarios` | `rol_id` |
+| `roles` ↔ `permisos` | `roles_permisos` | N a N |
+| `usuarios` | `sesiones` | `usuario_id` |
+| `sesiones` | `refresh_tokens` | `sesion_id` |
+| `clientes` | `equipos` (propietario), `ordenes_reparacion` (quien trae), `facturas` (a quien se factura), `proformas` | `cliente_id` |
+| `tipos_equipo`, `marcas` | `equipos` | `tipo_equipo_id`, `marca_id` |
+| `equipos` | `ordenes_reparacion` | `equipo_id` |
+| `ordenes_reparacion` | `ordenes_reparacion` (garantía) | `orden_garantia_id` |
+| `ordenes_reparacion` | `historial_estados_orden` | `orden_reparacion_id` |
+| `estados_orden` | `historial_estados_orden` | `estado_orden_id` |
+| `ordenes_reparacion` | `facturas` (0..1) | `orden_reparacion_id` |
+| `proformas` | `facturas` (0..1) | `proforma_id` |
+| `categorias_producto`, `marcas`, `tipos_iva` | `productos` | FK homónimas |
+| `productos` | `precios_producto`, `detalle_factura`, `detalle_proforma`, `detalle_compra`, `movimientos_inventario` | `producto_id` |
+| `proveedores` | `compras` | `proveedor_id` |
+| `compras` | `detalle_compra`, `movimientos_inventario` | `compra_id` |
+| `facturas` | `detalle_factura`, `movimientos_caja`, `movimientos_inventario`, `envios_correo` | `factura_id` |
+| `proformas` | `detalle_proforma` | `proforma_id` |
+| `sesiones_caja` | `movimientos_caja` | `sesion_caja_id` |
+| `metodos_pago` | `movimientos_caja` | `metodo_pago_id` |
+| `archivos` | `productos_archivos`, `ordenes_archivos`, PDF de órdenes, facturas y proformas, `envios_correo`, `configuracion` | `archivo_id` |
+| `usuarios` | casi todas (quién registró la operación) | `usuario_id` |

@@ -4,7 +4,7 @@ Estas reglas son obligatorias para cualquier cambio dentro de `editronic/`.
 
 ## Antes de empezar a trabajar
 1. Leer `project_memory.md` para saber qué se hizo y qué quedó pendiente.
-2. Leer `proyecto.md`, `decisiones.md` y `entidades.md`.
+2. Leer `proyecto.md`, `decisiones.md`, `entidades.md` y `analisis-bd-vieja.md`.
 3. No repetir preguntas que ya estén respondidas en esos archivos.
 
 ## Después de cada cambio
@@ -18,6 +18,20 @@ Estas reglas son obligatorias para cualquier cambio dentro de `editronic/`.
 - Ejemplo: si se propone `movimiento_inventarios`, explicar por qué no basta con un campo `stock` en `productos` (trazabilidad, auditoría, historial de entradas y salidas).
 - Si una petición me parece incorrecta o arriesgada (redundancia, mala normalización, pérdida de datos), decirlo antes de aplicarla y proponer alternativas.
 - No inventar entidades ni atributos que no se hayan pedido o justificado.
+
+## La BD vieja
+- La BD vieja (`analisis-bd-vieja.md`) es **solo una guía** para entender el negocio, nunca un modelo a copiar.
+- Las respuestas del usuario (`proyecto.md`) tienen **prioridad** sobre la BD vieja.
+- La migración de datos la hace el usuario: no condicionar el diseño a la BD vieja ni proponer columnas solo para facilitar la migración.
+- `bd.json` contiene datos personales de clientes: nunca subirlo al repositorio.
+
+## Prohibido en el modelo
+- Texto libre para valores de una lista: siempre tabla catálogo con FK.
+- JSON o arrays para datos relacionales (líneas de factura, pagos, permisos).
+- Archivos en base64 o binario en la BD: solo nombre, ruta y metadatos en `archivos`; el archivo vive en el backend o en un servicio externo.
+- Referencias genéricas sin FK (`tabla`, `registro_id`).
+- Fechas como texto.
+- Datos de otra tabla copiados (nombre, cédula del cliente…), salvo copias intencionales del momento de la venta (precio, IVA, costo), justificadas en su ficha.
 
 ## Flujo Dev → Producción
 - Todo cambio se hace primero en `ERD-Editronic-Dev.drawio`.
