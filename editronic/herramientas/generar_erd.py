@@ -1,4 +1,4 @@
-"""Genera las hojas por módulo de ERD-Editronic-Dev.drawio a partir de entidades.md.
+"""Genera ERD-Editronic-Dev.drawio (hoja completa y hojas por módulo) a partir de entidades.md.
 
 Uso: python3 editronic/herramientas/generar_erd.py editronic/entidades.md editronic/ERD-Editronic-Dev.drawio
 """
@@ -78,6 +78,16 @@ HOJAS = [
  ("archivos", "5 · Archivos, correo y configuración",
   [["usuarios*"], ["archivos", "facturas*", "ordenes_reparacion*", "tipos_iva*"], ["envios_correo", "configuracion"]]),
 ]
+# Hoja completa: las 35 tablas, en columnas por dependencia (los padres siempre a la izquierda)
+HOJA_COMPLETA = ("completo", "0 · Diagrama completo", [
+  ["roles", "permisos", "tipos_identificacion", "tarifas", "tipos_equipo", "marcas", "categorias_producto", "tipos_iva", "metodos_pago", "estados_orden"],
+  ["usuarios", "roles_permisos", "clientes", "proveedores", "productos"],
+  ["sesiones", "archivos", "equipos", "compras", "precios_producto", "sesiones_caja"],
+  ["refresh_tokens", "configuracion", "ordenes_reparacion", "proformas", "productos_archivos", "detalle_compra"],
+  ["historial_estados_orden", "ordenes_archivos", "facturas", "detalle_proforma"],
+  ["envios_correo", "detalle_factura", "movimientos_caja", "movimientos_inventario"],
+])
+assert sorted(t for c in HOJA_COMPLETA[2] for t in c) == sorted(tablas)
 completas = [t for _, _, cols in HOJAS for c in cols for t in c if not t.endswith("*")]
 assert sorted(completas) == sorted(tablas), set(tablas) ^ set(completas)
 
@@ -188,7 +198,7 @@ def pk_col(t):
     return [f for f in tablas[t] if "PK" in f[0]][0][1]
 
 out = '<mxfile host="Claude Code">\n'
-for pid, nombre, cols in HOJAS:
+for pid, nombre, cols in [HOJA_COMPLETA] + HOJAS:
     cuerpo, refs, n = hoja(pid, cols)
     print(f"{nombre}: {sum(1 for c in cols for t in c if not t.endswith('*'))} tablas, referencias: {', '.join(refs) or '-'}; {n} relaciones", file=sys.stderr)
     out += f'  <diagram id="{pid}" name={q(nombre)}>\n    <mxGraphModel grid="1" gridSize="10" guides="1" connect="1" arrows="1" page="0" adaptiveColors="auto">\n      <root>\n        <mxCell id="0"/>\n        <mxCell id="1" parent="0"/>\n        ' + cuerpo + '\n      </root>\n    </mxGraphModel>\n  </diagram>\n'

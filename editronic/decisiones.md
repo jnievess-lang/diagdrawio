@@ -239,4 +239,4 @@ Cada decisión de diseño con su contexto, alternativas y consecuencias. Las dec
   - Lado del padre: `1` si la FK es obligatoria, `0..1` si admite nulos.
   - Lado del hijo: `0..1` si la FK es única; `1..N` cuando el padre siempre tiene al menos un hijo (factura, proforma y compra con su detalle; orden con su historial; equipo con sus órdenes; sesión con sus refresh tokens); `0..N` en el resto.
 - **Alternativas descartadas:** versiones 2 y 3 (sin columna NULL: el diagrama no mostraría qué columnas son opcionales); una sola hoja con 35 tablas como única vista (ilegible).
-- **Consecuencias:** las hojas por módulo se regeneran desde `entidades.md` con `herramientas/generar_erd.py`.
+- **Consecuencias:** todas las hojas, incluida "0 · Diagrama completo" (añadida el 2026-11-03 con la aprobación del usuario), se regeneran desde `entidades.md` con `herramientas/generar_erd.py`.

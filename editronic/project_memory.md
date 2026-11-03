@@ -3,16 +3,21 @@
 Bitácora cronológica: cada cambio, en orden, con su motivo. La entrada más reciente va arriba.
 
 ## Estado actual
-- **Fase:** diagrama Dev en revisión.
-- **`entidades.md`:** validado por el usuario (35 tablas, 27 decisiones).
-- **Diagrama Dev:** 5 hojas por módulo generadas, pendientes de revisión del usuario.
+- **Fase:** diagrama Dev completo, en revisión.
+- **`entidades.md`:** validado (35 tablas, 27 decisiones).
+- **Diagrama Dev:** 6 hojas. La hoja "0 · Diagrama completo" tiene las 35 tablas y las 65 relaciones; las hojas 1 a 5 son por módulo.
 - **Diagrama Producción:** vacío.
 - **Pendiente:**
-  1. El usuario revisa las 5 hojas.
-  2. Con su aprobación: añadir a Dev la hoja con todas las entidades.
-  3. Después, pasar a Producción solo con aprobación explícita.
+  1. El usuario revisa la hoja completa.
+  2. Pasar a Producción solo con su aprobación explícita.
 
 ## Bitácora
+
+### 2026-11-03 — Hoja con el diagrama completo
+- **Qué:** con la aprobación de las hojas por módulo, se añadió la hoja "0 · Diagrama completo" a `ERD-Editronic-Dev.drawio`: 35 tablas y 65 relaciones.
+- **Columnas por dependencia:** catálogos y roles → usuarios, clientes, proveedores y productos → sesiones, archivos, equipos, compras, precios y caja → órdenes, proformas y detalle de compra → facturas, historial y detalle de proforma → detalle de factura, movimientos de caja e inventario, y envíos de correo.
+- **Cómo:** la misma herramienta `herramientas/generar_erd.py` genera la hoja completa y las hojas por módulo.
+- **Valoración:** la hoja completa sirve de vista general y es densa por naturaleza. `usuarios` recibe 15 relaciones y `archivos` 8, así que su fila PK es alta y hay muchos carriles arriba. Para leer el detalle se usan las hojas por módulo.
 
 ### 2026-11-03 — Hojas por módulo en ERD-Editronic-Dev.drawio
 - **Qué:**
