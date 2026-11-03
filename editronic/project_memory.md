@@ -13,6 +13,14 @@ Bitácora cronológica: cada cambio, en orden, con su motivo. La entrada más re
 
 ## Bitácora
 
+### 2026-11-03 — Ajuste de cardinalidades en la hoja 0
+- **Qué:** el usuario detectó en la hoja "0 · Diagrama completo" tres problemas: etiquetas `0..N` encima de la pata de gallo y del borde de la tabla, etiquetas `1` debajo de su línea (encima de la siguiente) y cruces de líneas pegados a las etiquetas.
+- **Corrección, solo en la hoja 0:**
+  1. Las etiquetas van encima de su línea: alineadas a la izquierda del lado padre y a la derecha del lado hijo, a 22 px del borde.
+  2. Las salidas de una misma PK se separan 28 px (antes 18).
+  3. Los carriles verticales empiezan a 70 px de las tablas (antes 30), así los cruces quedan lejos de las etiquetas.
+- **Comprobado:** las hojas 1 a 5 quedaron idénticas, byte a byte.
+
 ### 2026-11-03 — Hoja con el diagrama completo
 - **Qué:** con la aprobación de las hojas por módulo, se añadió la hoja "0 · Diagrama completo" a `ERD-Editronic-Dev.drawio`: 35 tablas y 65 relaciones.
 - **Columnas por dependencia:** catálogos y roles → usuarios, clientes, proveedores y productos → sesiones, archivos, equipos, compras, precios y caja → órdenes, proformas y detalle de compra → facturas, historial y detalle de proforma → detalle de factura, movimientos de caja e inventario, y envíos de correo.

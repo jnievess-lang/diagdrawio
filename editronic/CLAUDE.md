@@ -46,6 +46,7 @@ Estas reglas son obligatorias para cualquier cambio dentro de `editronic/`.
 - Líneas ortogonales que van por los huecos entre columnas o por carriles encima de las tablas; nunca atraviesan una tabla. Cada relación sale de su propio punto de la fila PK.
 - Tablas de otro módulo: solo su fila PK y borde discontinuo (referencia); su ficha completa está en la hoja de su módulo.
 - Sin recuadro de leyenda en las hojas.
+- Hoja 0: etiquetas de cardinalidad encima de su línea, sin tapar símbolos ni bordes; 28 px entre salidas de una misma PK y 70 px libres junto a las tablas antes del primer cruce.
 - Hojas de `ERD-Editronic-Dev.drawio`: 0 Diagrama completo (todas las tablas, en columnas por dependencia) y una por módulo (1 Seguridad, 2 Clientes y servicio técnico, 3 Productos, inventario y compras, 4 Ventas y caja, 5 Archivos, correo y configuración).
 - Todas las hojas se generan desde `entidades.md` con `herramientas/generar_erd.py`, para que el diagrama y el documento digan lo mismo. Cambiar primero `entidades.md` y volver a generar.
 

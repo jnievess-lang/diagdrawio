@@ -118,7 +118,9 @@ def tabla_xml(pfx, nombre, filas, x, y, ref, hpk):
         yy += h
     return o, 30 + sum(alt), centros
 
-def hoja(pid, cols):
+def hoja(pid, cols, fino=False):
+    # fino=True (solo hoja 0): más separación entre salidas, holgura junto a las tablas y etiquetas encima de la línea
+    sep, holg = (28, 70) if fino else (18, 30)
     pfx = pid + "."
     col_de, es_ref = {}, {}
     for ci, c in enumerate(cols):
@@ -145,7 +147,7 @@ def hoja(pid, cols):
     # posiciones
     xcol, x = [], MARGEN
     for g in range(len(cols)):
-        xcol.append(x); x += TW + 60 + PASO * len(uso[g])
+        xcol.append(x); x += TW + 2 * holg + PASO * len(uso[g])
     salidas = {}
     for r in rels:
         salidas.setdefault(r[2], []).append(r)
@@ -155,7 +157,7 @@ def hoja(pid, cols):
         for t in c:
             n = t.rstrip("*"); f = filas_de(n, es_ref[n])
             k = len(salidas.get(n, []))
-            hpk = max(H, 18 * k + 8)
+            hpk = max(H, sep * k + 8)
             xml, alto, centros = tabla_xml(pfx, n, f, xcol[ci], y, es_ref[n], hpk)
             o += xml
             geo[n] = (xcol[ci], y, {col: top + h / 2 for col, (top, h) in centros.items()})
@@ -170,7 +172,7 @@ def hoja(pid, cols):
     for g, lista in uso.items():
         lista_ord = sorted(lista, key=lambda r: salida_y[id(r)][0])
         for k, r in enumerate(lista_ord):
-            pos_hueco[(id(r), g)] = xcol[g] + TW + 30 + PASO * k
+            pos_hueco[(id(r), g)] = xcol[g] + TW + holg + PASO * k
     carril = {id(r): MARGEN + PASO * k for k, r in enumerate(sorted(largas, key=lambda r: (col_de[r[0]] - col_de[r[2]])))}
     n = 0
     for r in rels:
@@ -188,9 +190,14 @@ def hoja(pid, cols):
             pts = [(g1, ys), (g1, cy), (g2, cy), (g2, yd)]; ent = "entryX=0;entryY=0.5;"
         p = "".join(f'<mxPoint x="{a}" y="{b}"/>' for a, b in pts)
         o.append(f'<mxCell id="{eid}" style="{E}exitX=1;exitY={fy:.4f};{ent}startArrow={FLECHA[lp]};endArrow={FLECHA[lh]};" edge="1" parent="1" source="{src}" target="{dst}"><mxGeometry relative="1" as="geometry"><Array as="points">{p}</Array></mxGeometry></mxCell>')
-        o.append(f'<mxCell id="{eid}.a" value="{lp}" style="{L}" vertex="1" connectable="0" parent="{eid}"><mxGeometry x="-1" relative="1" as="geometry"><mxPoint x="16" y="-7" as="offset"/></mxGeometry></mxCell>')
-        dx = 14 if i == j else -16
-        o.append(f'<mxCell id="{eid}.b" value="{lh}" style="{L}" vertex="1" connectable="0" parent="{eid}"><mxGeometry x="1" relative="1" as="geometry"><mxPoint x="{dx}" y="-9" as="offset"/></mxGeometry></mxCell>')
+        if fino:  # texto encima de la línea, sin tapar el símbolo ni el borde de la tabla
+            la = L + "align=left;verticalAlign=bottom;labelBackgroundColor=none;"
+            lb = L + ("align=left;" if i == j else "align=right;") + "verticalAlign=bottom;labelBackgroundColor=none;"
+            ax, ay, bx, by = 22, -3, (22 if i == j else -22), -3
+        else:
+            la = lb = L; ax, ay, by = 16, -7, -9; bx = 14 if i == j else -16
+        o.append(f'<mxCell id="{eid}.a" value="{lp}" style="{la}" vertex="1" connectable="0" parent="{eid}"><mxGeometry x="-1" relative="1" as="geometry"><mxPoint x="{ax}" y="{ay}" as="offset"/></mxGeometry></mxCell>')
+        o.append(f'<mxCell id="{eid}.b" value="{lh}" style="{lb}" vertex="1" connectable="0" parent="{eid}"><mxGeometry x="1" relative="1" as="geometry"><mxPoint x="{bx}" y="{by}" as="offset"/></mxGeometry></mxCell>')
     refs = [t for t in es_ref if es_ref[t]]
     return "".join(o), refs, n
 
@@ -199,7 +206,7 @@ def pk_col(t):
 
 out = '<mxfile host="Claude Code">\n'
 for pid, nombre, cols in [HOJA_COMPLETA] + HOJAS:
-    cuerpo, refs, n = hoja(pid, cols)
+    cuerpo, refs, n = hoja(pid, cols, fino=(pid == "completo"))
     print(f"{nombre}: {sum(1 for c in cols for t in c if not t.endswith('*'))} tablas, referencias: {', '.join(refs) or '-'}; {n} relaciones", file=sys.stderr)
     out += f'  <diagram id="{pid}" name={q(nombre)}>\n    <mxGraphModel grid="1" gridSize="10" guides="1" connect="1" arrows="1" page="0" adaptiveColors="auto">\n      <root>\n        <mxCell id="0"/>\n        <mxCell id="1" parent="0"/>\n        ' + cuerpo + '\n      </root>\n    </mxGraphModel>\n  </diagram>\n'
 out += "</mxfile>\n"
