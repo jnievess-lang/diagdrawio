@@ -99,7 +99,7 @@ L = "edgeLabel;html=1;fontSize=11;fontStyle=1;labelBackgroundColor=#ffffff;resiz
 W = [50, 190, 125, 45]; TW = sum(W); H = 26; GY = 50; PASO = 14; MARGEN = 40
 
 def filas_de(t, ref):
-    return [f for f in tablas[t] if "PK" in f[0]][:1] if ref else tablas[t]
+    return tablas[t]  # las tablas de referencia también muestran todos sus atributos
 
 def tabla_xml(pfx, nombre, filas, x, y, ref, hpk):
     st = T + ("dashed=1;" if ref else "")

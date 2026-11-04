@@ -44,7 +44,7 @@ Estas reglas son obligatorias para cualquier cambio dentro de `editronic/`.
 - Cuatro columnas por fila: clave (`PK`, `FK`, `UQ` o combinadas como `PK,FK`), nombre, tipo de PostgreSQL y `NULL` si admite nulos (vacío = NOT NULL). La PK va en negrita y subrayada. Sin descripción: eso queda en `entidades.md`.
 - Relaciones: pata de gallo, ancladas a la fila PK y a la fila FK (nunca líneas sueltas), con la cardinalidad escrita en cada extremo (`1`, `0..1`, `1..N`, `0..N`).
 - Líneas ortogonales que van por los huecos entre columnas o por carriles encima de las tablas; nunca atraviesan una tabla. Cada relación sale de su propio punto de la fila PK.
-- Tablas de otro módulo: solo su fila PK y borde discontinuo (referencia); su ficha completa está en la hoja de su módulo.
+- Tablas de otro módulo (referencia): con todos sus atributos y borde discontinuo, para indicar que su hoja principal es la de su módulo.
 - Sin recuadro de leyenda en las hojas.
 - Todas las hojas: etiquetas de cardinalidad encima de su línea, sin tapar símbolos ni bordes; 28 px entre salidas de una misma PK y 70 px libres junto a las tablas antes del primer cruce.
 - Hojas de `ERD-Editronic-Dev.drawio`: 0 Diagrama completo (todas las tablas, en columnas por dependencia) y una por módulo (1 Seguridad, 2 Clientes y servicio técnico, 3 Productos, inventario y compras, 4 Ventas y caja, 5 Archivos, correo y configuración).

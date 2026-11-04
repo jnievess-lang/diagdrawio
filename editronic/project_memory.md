@@ -13,6 +13,10 @@ Bitácora cronológica: cada cambio, en orden, con su motivo. La entrada más re
 
 ## Bitácora
 
+### 2026-11-04 — Atributos completos en las tablas de referencia
+- **Qué:** en las hojas 1 a 5, las tablas de otros módulos (borde discontinuo) solo mostraban su PK. El usuario pidió ver sus atributos, así que ahora muestran todas sus columnas. El borde discontinuo se mantiene para indicar que su hoja principal es otra.
+- **Dónde:** generador, `ERD-Editronic-Dev.drawio` (hojas 1 a 5), `CLAUDE.md` y D-027. La hoja 0 no cambia.
+
 ### 2026-11-03 — Prefijo `tb`, PK con nombre propio y cardinalidades en todas las hojas
 - **Qué:**
   - Las 35 tablas pasan a `tb` + nombre sin guiones bajos (`tbdetalleproforma`).

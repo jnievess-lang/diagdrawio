@@ -233,7 +233,7 @@ Cada decisión de diseño con su contexto, alternativas y consecuencias. Las dec
   - Cardinalidad con pata de gallo y etiqueta en cada extremo.
   - Sin leyenda.
   - Una hoja por módulo y, después, una hoja con todas las entidades.
-  - Las tablas de otros módulos aparecen como referencia (solo PK, borde discontinuo).
+  - Las tablas de otros módulos aparecen como referencia con borde discontinuo. Desde el 2026-11-04 muestran todos sus atributos (pedido del usuario); antes solo la PK.
   - Líneas ortogonales que no cruzan tablas.
 - **Cardinalidad usada:**
   - Lado del padre: `1` si la FK es obligatoria, `0..1` si admite nulos.
