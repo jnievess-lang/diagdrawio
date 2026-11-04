@@ -3,15 +3,18 @@
 Bitácora cronológica: cada cambio, en orden, con su motivo. La entrada más reciente va arriba.
 
 ## Estado actual
-- **Fase:** diagrama Dev completo, en revisión.
-- **`entidades.md`:** validado (35 tablas, 27 decisiones).
-- **Diagrama Dev:** 6 hojas. La hoja "0 · Diagrama completo" tiene las 35 tablas y las 65 relaciones; las hojas 1 a 5 son por módulo.
-- **Diagrama Producción:** vacío.
-- **Pendiente:**
-  1. El usuario revisa la hoja completa.
-  2. Pasar a Producción solo con su aprobación explícita.
+- **Fase:** modelo aprobado y publicado en Producción (versión 1, 2026-11-04).
+- **`entidades.md`:** 35 tablas, 28 decisiones.
+- **Diagrama Dev:** 6 hojas (completo y 5 módulos).
+- **Diagrama Producción:** copia aprobada de Dev, idéntica salvo los identificadores internos de las hojas.
+- **Siguiente:** cualquier cambio nuevo se hace primero en Dev y solo pasa a Producción con aprobación explícita.
 
 ## Bitácora
+
+### 2026-11-04 — Paso a Producción (versión 1)
+- **Qué:** el usuario aprobó el diagrama Dev y se copió a `ERD-Editronic-Produccion.drawio` con sus 6 hojas, 35 tablas y 65 relaciones.
+- **Cómo:** copia directa de Dev; solo cambian los identificadores internos de las hojas (prefijo `prod-`). Se verificó que el contenido es idéntico.
+- **Por qué:** cumple la regla del flujo Dev → Producción (D-001): solo se publica con aprobación explícita.
 
 ### 2026-11-04 — Atributos completos en las tablas de referencia
 - **Qué:** en las hojas 1 a 5, las tablas de otros módulos (borde discontinuo) solo mostraban su PK. El usuario pidió ver sus atributos, así que ahora muestran todas sus columnas. El borde discontinuo se mantiene para indicar que su hoja principal es otra.

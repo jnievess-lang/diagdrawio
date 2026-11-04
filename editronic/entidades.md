@@ -2,7 +2,7 @@
 
 Ficha de cada entidad del modelo. Una entidad sin ficha completa no entra al diagrama (D-004).
 
-**Fase actual:** modelo completo; todas las preguntas están respondidas (P1 a P7, 2026-11-03). Las entidades quedan **listas para la validación final** del usuario. Los diagramas no se tocan hasta entonces.
+**Fase actual:** modelo aprobado por el usuario y publicado en `ERD-Editronic-Produccion.drawio` (versión 1, 2026-11-04).
 
 **Fuentes:** respuestas del usuario (prioridad máxima), 15 capturas y `bd.json`. Los hallazgos de la BD vieja están en `analisis-bd-vieja.md`.
 
